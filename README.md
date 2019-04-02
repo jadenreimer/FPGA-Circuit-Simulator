@@ -1,11 +1,11 @@
 # 243-project
 
 Path to develop program:
-1. Get box and line drawing working
-2. Get image displaying working (there was some preliminary code about this given by one of the TAs, shouldn't be more complicated than "clearing" the screen with pixels taken from a file)
-3. Get the box jumping with key presses
-4. Get the background moving behind the box
-5. Get obstacles flying toward the box from the right
-6. Get hitboxes working with the box and obstacles
-7. Scale the speed of the game with a computed score
-8. Get a restart button
+1. Get program running with lines that will appear or disappear based on interrupts from the buttons
+2. Get images displaying based on button clicks instead of lines (there was some preliminary code about this given by one of the TAs, shouldn't be more complicated than "clearing" the screen with pixels taken from a file)
+3. Get a circuit display of the capacitor, source, load
+4. Get the keys flipping the switches to those two circuit elements
+5. Get graphics for graphs to the right of the circuit
+6. Fill the graphs with charge and voltage info
+7. Time-scale the graphs (use button presses to move a slider or something like that)
+8. Add a restart button
