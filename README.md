@@ -9,3 +9,8 @@ Path to develop program:
 6. Fill the graphs with charge and voltage info
 7. Time-scale the graphs (use button presses to move a slider or something like that)
 8. Add a restart button
+
+Useful links for interrupt setup and handling in C:
+https://chromium.googlesource.com/chromiumos/third_party/coreboot/+/factory-4290.B/src/arch/armv7/interrupts.c
+http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.faqs/ka13552.html
+https://www.embedded.com/design/programming-languages-and-tools/4397803/Interrupts-short-and-simple--Part-1---Good-programming-practices
