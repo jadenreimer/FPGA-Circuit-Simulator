@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <math.h>
-#include "arm.h"
+//#include "arm.h"
 
 // Colours
 #define RED 0xF800
@@ -158,6 +158,7 @@ int main(void){
         set_switches(&sw1, &sw2, &sw1_ready, &sw2_ready);
         if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
 
+<<<<<<< HEAD
         // tab_over(select, tab_ready);
         // change_data(select, type_ready, circuit_data, temp_circuit_data);
     }
@@ -282,6 +283,10 @@ void draw_square(int x, int y, short int color){
         for (int j = y; j < (y+5); j++){
             plot_pixel(i, j, color);
         }
+=======
+        tab_over(&select, &digit, &tab_ready, circuit_data, temp_circuit_data);
+        change_data(&select, &digit, &type_ready, circuit_data, temp_circuit_data);
+>>>>>>> 750bca5b6f335aa399854ab21996a766b40421eb
     }
 }
 
@@ -292,40 +297,40 @@ void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
     int data;
     data = *(JTAG_UART_ptr);
 
-    if (data == 0x1A && sw1_ready){
-        select++;
-        sw1_ready = false;
+    if (data == 0x1A && (*sw1_ready)){
+        *sw1 = !(*sw1);
+        *sw1_ready = false;
     }
 
-    else if (data == 0xF01A && !sw1_ready){
-        sw1_ready = true;
+    else if (data == 0xF01A && !(*sw1_ready)){
+        *sw1_ready = true;
     }
 
-    if (data == 0x22 && sw2_ready){
-        select++;
-        sw2_ready = false;
+    if (data == 0x22 && (*sw2_ready)){
+        *sw2 = !(*sw2);
+        *sw2_ready = false;
     }
 
-    else if (data == 0xF022 && !sw2_ready){
-        sw2_ready = true;
+    else if (data == 0xF022 && !(*sw2_ready)){
+        *sw2_ready = true;
     }
 }
 
-void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data)
+void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data){
     volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
 
     int data;
     data = *(JTAG_UART_ptr);
 
-    if (data == 0x0D && tab_ready){
-        select++;
-        if (select>4) select = 0;
-        tab_ready = false;
-        temp_circuit_data = circuit_data;
+    if (data == 0x0D && (*tab_ready)){
+        (*select)++;
+        if ((*select)>4) (*select) = 0;
+        *tab_ready = false;
+        *temp_circuit_data = *circuit_data;
     }
 
-    else if (data == 0xF00D && !tab_ready){
-        tab_ready = true;
+    else if (data == 0xF00D && !(*tab_ready)){
+        *tab_ready = true;
     }
 
 }
@@ -337,24 +342,24 @@ void change_data( int *select, int *digit, bool *type_ready, float *circuit_data
     data = *(JTAG_UART_ptr);
 
     if (type_ready){
-        if (data == 0x45 && digit != 0) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select];
-        else if (data == 0x16) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 1;
-        else if (data == 0x1E) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 2;
-        else if (data == 0x26) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 3;
-        else if (data == 0x25) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 4;
-        else if (data == 0x2E) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 5;
-        else if (data == 0x36) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 6;
-        else if (data == 0x3D) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 7;
-        else if (data == 0x3E) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 8;
-        else if (data == 0x46) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 9;
+        if (data == 0x45 && (*digit) != 0) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select];
+        else if (data == 0x16) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 1;
+        else if (data == 0x1E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 2;
+        else if (data == 0x26) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 3;
+        else if (data == 0x25) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 4;
+        else if (data == 0x2E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 5;
+        else if (data == 0x36) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 6;
+        else if (data == 0x3D) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 7;
+        else if (data == 0x3E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 8;
+        else if (data == 0x46) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 9;
 
-        else if (data == 0x66 && digit != 0){
-            temp_circuit_data[select] = round(temp_circuit_data[select]/pow(10, digit));
+        else if (data == 0x66 && (*digit) != 0){
+            temp_circuit_data[*select] = round(temp_circuit_data[*select]/pow(10, (*digit)));
             *digit--;
         }
 
         else if (data == 0x5A){
-            circuit_data = temp_circuit_data;
+            *circuit_data = *temp_circuit_data;
             *digit=0;
         }
 
@@ -372,9 +377,8 @@ void change_data( int *select, int *digit, bool *type_ready, float *circuit_data
             data == 0xF046 ||
             data == 0xF066 ||
             data == 0xF05A){
-                *type_ready = true;
-                *digit ++;
-            }
+        	*type_ready = true;
+            *digit ++;
         }
     }
 }
