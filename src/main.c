@@ -6,6 +6,7 @@
 #define BLACK 0x0000
 #define BLUE 0x001F
 #define GREEN 0x07E0
+#define WHITE 0xFFFF
 
 // Memory
 #define PIXEL_BUFF_REG 0xFF203020   //Controls pixel buffer functionality
@@ -82,6 +83,7 @@ int main(void){
     float Ic[size];
     float Vc[size];
     float v_stored = 0.0;
+    // float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3};
 
     //time data
     int tc = 0;
@@ -133,6 +135,15 @@ int main(void){
                     sw2);
             t = t + 1.0;
             tc = 0;
+
+            //Debugging only
+            // for(int i=0; i<28; i++){
+            //     if(i < 15)
+            //     test[i] = sin(i)*test[i+1];
+            //     else test[i] = sin(i)/test[i+1];
+            // }
+            // test[29] = test[28]*2;
+            // tc = 0;
         }
 
         //Draw graphs to the right of the circuit
@@ -159,7 +170,7 @@ int main(void){
 }
 
 void clear_screen(){
-    short int line_colour = BLACK;
+    short int line_colour = WHITE;
     for (int x = 0; x < X_DIM; x++ ){
     	for (int y = 0; y < Y_DIM ; y++ ){
         	plot_pixel(x, y, line_colour);
@@ -170,8 +181,8 @@ void clear_screen(){
 
 void draw_graph(int x, int y, int size, float values[size]){
     //bars of the graph
-    draw_line(x, y + GRAPH_LEN, x, y - GRAPH_LEN, BLACK);
-    draw_line(x, y, x + GRAPH_LEN, y, BLACK);
+    draw_line(x, y + GRAPH_LEN, x, y - GRAPH_LEN, BLACK);//up-down
+    draw_line(x, y, x + GRAPH_LEN, y, BLACK);//horizontal
 
     //arrows of the graph
     //top arrow
@@ -192,45 +203,51 @@ void draw_graph(int x, int y, int size, float values[size]){
 
     //graph the values
     for(int i = 0; i < size-2; i++){
-        draw_line((int)(x+i*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*values[i]/max),
-                (int)(x+(i+1)*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*values[i+1]/max), RED);
+        draw_line((int)(x+i*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i]/max)),
+                (int)(x+(i+1)*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i+1]/max)), RED);
     }
 }
 
 void draw_line(int x0, int y0, int x1, int y1, short int line_colour){
-    int steep = abs(y1 - y0) > abs(x1 - x0);
+    int is_steep = abs(y1 - y0) > abs(x1 - x0);
     int temp = 0;
-    if (steep){
-		swap(x0, y0);
-		swap(x1, y1);
+    if (is_steep){
+		temp = x0;
+		x0 = y0;
+		y0 = temp;
+		temp = x1;
+		x1 = y1;
+		y1 = temp;
     }
     if (x0 > x1){
-    	swap(x0, x1);
-		swap(y0, y1);
+    	temp = x0;
+		x0 = x1;
+		x1 = temp;
+		temp = y0;
+		y0 = y1;
+		y1 = temp;
     }
 
-    int delta_x = x1 - x0;
-    int delta_y = abs(y1 - y0);
-    int error = -(delta_x / 2);
+    int deltax = x1 - x0;
+    int deltay = abs(y1 - y0);
+    int error = -(deltax / 2);
     int y = y0;
     int y_step = -1;
-
     if (y0 < y1){
 		y_step = 1;
     }
-
-    for (int i = x0; i < x1; i++){
-        if (steep){
+    int i;
+    for (i = x0; i < x1; i++){
+        if (is_steep){
             plot_pixel(y, i, line_colour);
         }
         else{
             plot_pixel(i, y, line_colour);
         }
-        error += deltay;
-
+        error = error + deltay;
         if (error >= 0){
-            y += y_step;
-            error -= delta_x;
+            y = y + y_step;
+            error = error - deltax;
         }
     }
 }
