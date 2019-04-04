@@ -20,10 +20,31 @@ volatile int pixel_buffer_start; // global variable
 
 void clear_screen();
 void draw_line(int xi, int yi, int xf, int yf, short int line_color);
+// void draw_image(int x_start, int y_start, int x_size, int y_size, extern short image);
+void draw_graph(int x, int y);
 void plot_pixel(int x, int y, short int line_color);
+
+void compute(float & Vs[size],
+                float & Ic[size],
+                float & Vc[size],
+                float & v_stored;
+                float amp,
+                float freq,
+                float phase,
+                float cap,
+                float res,
+                int size,
+                float t,
+                float t_not,
+                bool sw1,
+                bool sw2);
+
 void swap (int* x, int* y);
 void wait_for_vsync();
 void clear_line(int xi, int xf, int y);
+void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready );
+void change_data( int & select, bool & tab_ready);
+
 
 int main(void){
     bool sw1 = false;
@@ -52,22 +73,64 @@ int main(void){
     *(pixel_ctrl_ptr + 1) = SDRAM_MEM;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
+    int size = 70;
+
+    //Graph data
+    float Vs[size];
+    float Ic[size];
+    float Vc[size];
+    float v_stored = 0.0;
+
+    //time data
+    int tc = 0;
+    float t = 0.0;
+    float t_not = 0.0;
+
+    //circuit data
+    float capacitance = 1 * pow(10, -6);
+    float resistance = 1000;
+
+    //signal data
+    float amp = 1;
+    float freq = 1;
+    float phase = 0;
+
+    int select = 0;
+    bool tab_ready = true;
+
+    std::vector<std::string> circuit_data = {amp, freq, phase, capacitance, resistance};
+
     while (true){
         //  clear screen
         clear_screen();
+        int x_pos = 160-80/2;
+        int y_pos = 240/2-120/2;
 
-<<<<<<< HEAD
-        //body
-=======
         //Debugging
         // draw_line(x_pos, 50, 50, y_pos, BLACK);
 
-        //Calculate charge and voltage
-        if(time_counter == 5){
-            charge_and_voltage(int charge[size], int voltage[size]);
-            time_counter = 0;
+        //Calculate Ic and Vs
+        if(tc == 5){
+
+            compute(Vs[size],
+                    Ic[size],
+                    Vc[size],
+                    v_stored,
+                    circuit_data[0],
+                    circuit_data[1],
+                    circuit_data[2],
+                    circuit_data[3],
+                    circuit_data[4],
+                    size,
+                    t,
+                    t_not,
+                    sw1,
+                    sw2);
+
+            t = t + 1.0;
+            tc = 0;
         }
-        
+
         //Draw graphs to the right of the circuit
         draw_graph(graph_x_dist, graph_y_dist);
         draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
@@ -75,12 +138,18 @@ int main(void){
         // for (i=0; i<120; i++)
         //     for (j=0; j<80; j++)
         //     *(short int *)(pixel_buffer_start + (x_pos + j<<0) + (y_pos + i<<9)) = CAP_RAW[i][j];
->>>>>>> 7320d318467404e99a48d4c4f8be40065c7ddae1
 
         //  wait for sync
         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
+        tc++;
         pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
-        set_switches( sw1, sw2, sw1_ready, sw2_ready);
+
+        int sw1_old = sw1;
+        int sw2_old = sw2;
+        set_switches(sw1, sw2, sw1_ready, sw2_ready);
+        if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
+
+        change_data(select, tab_ready);
     }
 }
 
@@ -194,4 +263,71 @@ void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready )
     else if (data == 0xF022 && !sw2_ready){
         sw2_ready = true;
     }
+}
+
+void change_data( int & select, bool & tab_ready){
+    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
+
+    int data;
+    data = *(JTAG_UART_ptr);
+    if (data = 0x0D && tab_ready){
+        select++;
+        tab_ready = false;
+    }
+
+    else if (data = 0xF00D && !tab_ready){
+        tab_ready = true;
+    }
+
+}
+
+void compute(float & Vs[size],
+            float & Ic[size],
+            float & Vc[size],
+            float & v_stored,
+            float amp,
+            float freq,
+            float phase,
+            float cap,
+            float res,
+            int size,
+            float t,
+            float t_not,
+            bool sw1,
+            bool sw2)
+{
+    for (int i; i<size-1; i++){
+        Ic[i] = Ic[i+1];
+        Vs[i] = Vs[i+1];
+    }
+
+    float arg = (freq * (t - t_not)) - phase;
+    Vs[size] = amp * sin(arg);
+
+    if (!sw1 && !sw2)
+    {
+        Ic[size] = 0;
+        Vc[size] = Vs[size];
+    }
+
+    else if (sw1 && !sw2)
+    {
+        Ic[size] = cap * amp * freq * cos(arg);
+        Vc[size] = Vs[size] * (1 - exp( -(t-t_not) / (res * cap) ) );
+        v_stored = Vc[size];
+    }
+
+    else if (sw1 && sw2)
+    {
+        Ic[size] = ((amp * sin(arg) * exp( -(t-t_not) / (res * cap) ) ) / res) + (amp * cap * freq * (1 - exp( -(t-t_not) / (res * cap) ) ) * cos(arg));
+        Vc[size] = Vs[size] * (1 - exp( -(t-t_not) / (res * cap) ) );
+        v_stored = Vc[size];
+    }
+
+    else if (!sw1 && sw2)
+    {
+        Vc[size] = v_stored *  exp( -(t-t_not) / (res * cap) );
+        Ic[size] = - Vc / res;
+    }
+
 }
