@@ -56,7 +56,26 @@ int main(void){
         //  clear screen
         clear_screen();
 
+<<<<<<< HEAD
         //body
+=======
+        //Debugging
+        // draw_line(x_pos, 50, 50, y_pos, BLACK);
+
+        //Calculate charge and voltage
+        if(time_counter == 5){
+            charge_and_voltage(int charge[size], int voltage[size]);
+            time_counter = 0;
+        }
+        
+        //Draw graphs to the right of the circuit
+        draw_graph(graph_x_dist, graph_y_dist);
+        draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
+        // int i, j;
+        // for (i=0; i<120; i++)
+        //     for (j=0; j<80; j++)
+        //     *(short int *)(pixel_buffer_start + (x_pos + j<<0) + (y_pos + i<<9)) = CAP_RAW[i][j];
+>>>>>>> 7320d318467404e99a48d4c4f8be40065c7ddae1
 
         //  wait for sync
         wait_for_vsync(); // swap front and back buffers on VGA vertical sync
