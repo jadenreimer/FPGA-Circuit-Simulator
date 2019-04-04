@@ -28,7 +28,6 @@ void clear_screen();
 void draw_line(int xi, int yi, int xf, int yf, short int line_color);
 // void draw_image(int x_start, int y_start, int x_size, int y_size, extern short image);
 void draw_graph(int x, int y, int size, float values[size]);
-void draw_graph(int x, int y);
 void plot_pixel(int x, int y, short int line_color);
 
 void compute(	int size,
@@ -59,8 +58,6 @@ int main(void){
     bool sw2 = false;
     bool sw2_ready = true;
 
-    init_interrupts();
-
     // declare other variables
     // short int draw_colour = BLUE;
     volatile int * pixel_ctrl_ptr = (int *)PIXEL_BUFF_REG;
@@ -87,7 +84,7 @@ int main(void){
     float Ic[size];
     float Vc[size];
     float v_stored = 0.0;
-    // float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3};
+    //float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3};
 
     //time data
     int tc = 0;
@@ -145,10 +142,10 @@ int main(void){
         }
 
         //Draw graphs to the right of the circuit
-        draw_graph(200, 120, 70, Vs);
+        //draw_graph(200, 120, 70, Vs);
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
-        draw_graph(graph_x_dist, graph_y_dist);
-        draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
+        //draw_graph(graph_x_dist, graph_y_dist);
+        //draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         // int i, j;
         // for (i=0; i<120; i++)
         //     for (j=0; j<80; j++)
@@ -158,9 +155,8 @@ int main(void){
         set_switches(&sw1, &sw2, &sw1_ready, &sw2_ready);
         if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
 
-<<<<<<< HEAD
-        // tab_over(select, tab_ready);
-        // change_data(select, type_ready, circuit_data, temp_circuit_data);
+        tab_over(&select, &digit, &tab_ready, circuit_data, temp_circuit_data);
+        change_data(&select, &digit, &type_ready, circuit_data, temp_circuit_data);
     }
 }
 
@@ -283,10 +279,7 @@ void draw_square(int x, int y, short int color){
         for (int j = y; j < (y+5); j++){
             plot_pixel(i, j, color);
         }
-=======
-        tab_over(&select, &digit, &tab_ready, circuit_data, temp_circuit_data);
-        change_data(&select, &digit, &type_ready, circuit_data, temp_circuit_data);
->>>>>>> 750bca5b6f335aa399854ab21996a766b40421eb
+
     }
 }
 
@@ -398,7 +391,7 @@ void compute(int size,
             bool sw1,
             bool sw2)
 {
-    for (int i; i<size-1; i++){
+    for (int i = 0; i<size-1; i++){
         Ic[i] = Ic[i+1];
         Vs[i] = Vs[i+1];
     }
