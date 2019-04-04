@@ -76,6 +76,7 @@ int main(void){
             charge_and_voltage(int charge[size], int voltage[size]);
             time_counter = 0;
         }
+        
         //Draw graphs to the right of the circuit
         draw_graph(graph_x_dist, graph_y_dist);
         draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
