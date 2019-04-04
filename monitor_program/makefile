@@ -28,7 +28,7 @@ OCFLAGS		:= -O srec
 
 # Files
 HDRS		:=
-SRCS		:= ../src/devices.c ../src/devices.h ../src/examples.c ../src/main.c
+SRCS		:= ../src/devices.c ../src/main.c ../src/images.s
 OBJS		:= $(patsubst %, %.o, $(SRCS))
 
 # Targets

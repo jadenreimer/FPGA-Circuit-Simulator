@@ -1,2 +1,1 @@
-void init_interrupts();
-void keys_interrupt();
+void key_ISR();
