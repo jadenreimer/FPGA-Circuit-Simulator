@@ -47,7 +47,7 @@ void swap (int* x, int* y);
 void wait_for_vsync();
 void clear_line(int xi, int xf, int y);
 void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready );
-void change_data( int & select, bool & tab_ready);
+void tab_over( int & select, bool & tab_ready);
 
 
 int main(void){
@@ -101,8 +101,11 @@ int main(void){
 
     int select = 0;
     bool tab_ready = true;
+    bool type_ready = true;
 
-    std::vector<std::string> circuit_data = {amp, freq, phase, capacitance, resistance};
+    std::vector<float> circuit_data = {amp, freq, phase, capacitance, resistance};
+    std::vector<float> temp_circuit_data = {0,0,0,0,0};
+    int digit = 1;
 
     while (true){
         //  clear screen
@@ -153,7 +156,8 @@ int main(void){
         set_switches(sw1, sw2, sw1_ready, sw2_ready);
         if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
 
-        change_data(select, tab_ready);
+        tab_over(select, tab_ready);
+        // change_data(select, type_ready, circuit_data, temp_circuit_data);
     }
 }
 
@@ -304,21 +308,35 @@ void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready )
     }
 }
 
-void change_data( int & select, bool & tab_ready){
+void tab_over( int & select, bool & tab_ready){
     volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
 
     int data;
     data = *(JTAG_UART_ptr);
-    if (data = 0x0D && tab_ready){
+
+    if (data == 0x0D && tab_ready){
         select++;
         tab_ready = false;
     }
 
-    else if (data = 0xF00D && !tab_ready){
+    else if (data == 0xF00D && !tab_ready){
         tab_ready = true;
     }
 
 }
+
+// void change_data( int select, bool & type_ready, int & digit, std::vector<float> circuit_data, std::vector<float> temp_circuit_data){
+//     volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
+//
+//     int data;
+//     data = *(JTAG_UART_ptr);
+//
+//     if (type_ready){
+//         if (data == 0x45
+//         type_ready = false;
+//     }
+//
+// }
 
 void compute(float & Vs[size],
             float & Ic[size],
