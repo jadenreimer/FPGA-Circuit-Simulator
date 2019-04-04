@@ -4,6 +4,26 @@
 
 // Colours
 #define RED 0xF800
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define GREEN 0x07E0
+#define WHITE 0xFFFF
+
+// Memory
+#define PIXEL_BUFF_REG 0xFF203020   //Controls pixel buffer functionality
+#define ON_CHIP_MEM 0xC8000000  //First pixel buffer
+#define SDRAM_MEM 0xC0000000    //Second pixel buffer
+
+//VGA
+#define X_DIM 320
+#define Y_DIM 240
+#define GRAPH_LEN 80
+#define ARROW_LEN (GRAPH_LEN/20)
+
+// extern short CAP_RAW [120][80];
+
+volatile int pixel_buffer_start; // global variable
+
 void clear_screen();
 void draw_line(int xi, int yi, int xf, int yf, short int line_color);
 // void draw_image(int x_start, int y_start, int x_size, int y_size, extern short image);
@@ -67,6 +87,7 @@ int main(void){
     float Ic[size];
     float Vc[size];
     float v_stored = 0.0;
+    // float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3};
 
     //time data
     int tc = 0;
@@ -112,6 +133,15 @@ int main(void){
 
             t = t + 1.0;
             tc = 0;
+
+            //Debugging only
+            // for(int i=0; i<28; i++){
+            //     if(i < 15)
+            //     test[i] = sin(i)*test[i+1];
+            //     else test[i] = sin(i)/test[i+1];
+            // }
+            // test[29] = test[28]*2;
+            // tc = 0;
         }
 
         //Draw graphs to the right of the circuit
@@ -128,8 +158,135 @@ int main(void){
         set_switches(&sw1, &sw2, &sw1_ready, &sw2_ready);
         if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
 
+<<<<<<< HEAD
+        // tab_over(select, tab_ready);
+        // change_data(select, type_ready, circuit_data, temp_circuit_data);
+    }
+}
+
+void clear_screen(){
+    short int line_colour = WHITE;
+    for (int x = 0; x < X_DIM; x++ ){
+    	for (int y = 0; y < Y_DIM ; y++ ){
+        	plot_pixel(x, y, line_colour);
+        }
+    }
+    return;
+}
+
+void draw_graph(int x, int y, int size, float values[size]){
+    //bars of the graph
+    draw_line(x, y + GRAPH_LEN, x, y - GRAPH_LEN, BLACK);//up-down
+    draw_line(x, y, x + GRAPH_LEN, y, BLACK);//horizontal
+
+    //arrows of the graph
+    //top arrow
+    draw_line(x, y - GRAPH_LEN, x-ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, BLACK);
+    draw_line(x, y - GRAPH_LEN, x+ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, BLACK);
+    //right arrow
+    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y-ARROW_LEN, BLACK);
+    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y+ARROW_LEN, BLACK);
+    //bottom arrow
+    draw_line(x, y + GRAPH_LEN, x-ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, BLACK);
+    draw_line(x, y + GRAPH_LEN, x+ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, BLACK);
+
+    float max = 0;
+    //find the max in the array
+    for(int i = 0; i < size-1; i++){
+        if(max < values[i]) max = values[i];
+    }
+
+    //graph the values
+    for(int i = 0; i < size-2; i++){
+        draw_line((int)(x+i*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i]/max)),
+                (int)(x+(i+1)*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i+1]/max)), RED);
+    }
+}
+
+void draw_line(int x0, int y0, int x1, int y1, short int line_colour){
+    int is_steep = abs(y1 - y0) > abs(x1 - x0);
+    int temp = 0;
+    if (is_steep){
+		temp = x0;
+		x0 = y0;
+		y0 = temp;
+		temp = x1;
+		x1 = y1;
+		y1 = temp;
+    }
+    if (x0 > x1){
+    	temp = x0;
+		x0 = x1;
+		x1 = temp;
+		temp = y0;
+		y0 = y1;
+		y1 = temp;
+    }
+
+    int deltax = x1 - x0;
+    int deltay = abs(y1 - y0);
+    int error = -(deltax / 2);
+    int y = y0;
+    int y_step = -1;
+    if (y0 < y1){
+		y_step = 1;
+    }
+    int i;
+    for (i = x0; i < x1; i++){
+        if (is_steep){
+            plot_pixel(y, i, line_colour);
+        }
+        else{
+            plot_pixel(i, y, line_colour);
+        }
+        error = error + deltay;
+        if (error >= 0){
+            y = y + y_step;
+            error = error - deltax;
+        }
+    }
+}
+
+void plot_pixel(int x, int y, short int line_color){
+    *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
+}
+
+void swap (int* x, int* y){
+    int temp = *x;
+    *x = *y;
+    *y = temp;
+}
+
+void wait_for_vsync(){
+    volatile int * pixel_ctrl_ptr = (int *)PIXEL_BUFF_REG;
+    register int status;
+    *pixel_ctrl_ptr = 1;    //start synchronization
+    status = *(pixel_ctrl_ptr + 3); //read s vlaue
+    while ((status & 0x01) != 0){
+       status = *(pixel_ctrl_ptr + 3); //read s vlaue
+    }
+}
+
+void clear_line(int xi, int xf, int y){
+    //clears horizontal line
+    if (xi > xf){
+        swap(&xi, &xf);
+    }
+    for (int x = xi; x <= xf; x++){
+        plot_pixel(x, y, BLACK);
+ 	}
+    return;
+}
+
+void draw_square(int x, int y, short int color){
+    for (int i = x ; i < (x+5); i++){
+        for (int j = y; j < (y+5); j++){
+            plot_pixel(i, j, color);
+        }
+=======
         tab_over(&select, &digit, &tab_ready, circuit_data, temp_circuit_data);
         change_data(&select, &digit, &type_ready, circuit_data, temp_circuit_data);
+>>>>>>> 750bca5b6f335aa399854ab21996a766b40421eb
     }
 }
 
