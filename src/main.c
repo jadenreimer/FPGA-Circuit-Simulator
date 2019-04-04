@@ -1,5 +1,5 @@
 #include <stdbool.h>
-#include <math.h>
+#include "arm.h"
 
 // Colours
 #define RED 0xF800
@@ -25,19 +25,19 @@ volatile int pixel_buffer_start; // global variable
 void clear_screen();
 void draw_line(int xi, int yi, int xf, int yf, short int line_color);
 // void draw_image(int x_start, int y_start, int x_size, int y_size, extern short image);
-void draw_graph(int x, int y, int size, float values[size]);
+void draw_graph(int x, int y);
 void plot_pixel(int x, int y, short int line_color);
 
-void compute(	int size,
-             	float *Vs,
-                float *Ic,
-                float *Vc,
-                float *v_stored;
+void compute(float & Vs[size],
+                float & Ic[size],
+                float & Vc[size],
+                float & v_stored;
                 float amp,
                 float freq,
                 float phase,
                 float cap,
                 float res,
+                int size,
                 float t,
                 float t_not,
                 bool sw1,
@@ -46,15 +46,17 @@ void compute(	int size,
 void swap (int* x, int* y);
 void wait_for_vsync();
 void clear_line(int xi, int xf, int y);
-void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
-void tab_over( int *select, bool *tab_ready);
-
+void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready );
+//void tab_over( int & select, int & digit, bool & tab_ready, std::vector<float> & temp_circuit_data);
+//void change_data( int select, bool & type_ready, int & digit, std::vector<float> circuit_data, std::vector<float> temp_circuit_data);
 
 int main(void){
     bool sw1 = false;
     bool sw1_ready = true;
     bool sw2 = false;
     bool sw2_ready = true;
+
+    init_interrupts();
 
     // declare other variables
     // short int draw_colour = BLUE;
@@ -101,9 +103,9 @@ int main(void){
     bool tab_ready = true;
     bool type_ready = true;
 
-    float circuit_data[5] = {amp, freq, phase, capacitance, resistance};
-    float temp_circuit_data[5] = {0,0,0,0,0};
-    int digit = 1;
+    std::vector<float> circuit_data = {amp, freq, phase, capacitance, resistance};
+    //std::vector<float> temp_circuit_data = {0,0,0,0,0};
+    int digit = 0;
 
     while (true){
         //  clear screen
@@ -117,27 +119,28 @@ int main(void){
         //Calculate Ic and Vs
         if(tc == 5){
 
-            compute(size,
-                    Vs,
-                    Ic,
-                    Vc,
-                    &v_stored,
+            compute(Vs[size],
+                    Ic[size],
+                    Vc[size],
+                    v_stored,
                     circuit_data[0],
                     circuit_data[1],
                     circuit_data[2],
                     circuit_data[3],
                     circuit_data[4],
+                    size,
                     t,
                     t_not,
                     sw1,
                     sw2);
+
             t = t + 1.0;
             tc = 0;
         }
 
         //Draw graphs to the right of the circuit
-        draw_graph(200, 120, 70, Vs);
-        // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
+        draw_graph(graph_x_dist, graph_y_dist);
+        draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         // int i, j;
         // for (i=0; i<120; i++)
         //     for (j=0; j<80; j++)
@@ -150,10 +153,10 @@ int main(void){
 
         int sw1_old = sw1;
         int sw2_old = sw2;
-        set_switches(&sw1, &sw2, &sw1_ready, &sw2_ready);
+        set_switches(sw1, sw2, sw1_ready, sw2_ready);
         if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
 
-        // tab_over(select, tab_ready);
+        // tab_over(select, digit, tab_ready, temp_circuit_data);
         // change_data(select, type_ready, circuit_data, temp_circuit_data);
     }
 }
@@ -274,7 +277,7 @@ void draw_square(int x, int y, short int color){
     }
 }
 
-void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
+void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready )
 {
     volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
 
@@ -299,46 +302,61 @@ void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
     }
 }
 
-void tab_over( int *select, bool *tab_ready){
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
-
-    if (data == 0x0D && tab_ready){
-        select++;
-        tab_ready = false;
-    }
-
-    else if (data == 0xF00D && !tab_ready){
-        tab_ready = true;
-    }
-
-}
-
-// void change_data( int select, bool *type_ready, int *digit, std::vector<float> circuit_data, std::vector<float> temp_circuit_data){
+// void tab_over( int & select, int & digit, bool & tab_ready, std::vector<float> & temp_circuit_data){
+//     volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
+//
+//     int data;
+//     data = *(JTAG_UART_ptr);
+//
+//     if (data == 0x0D && tab_ready){
+//         select++;
+//         if (select>4) select = 0;
+//         digit = 0;
+//         tab_ready = false;
+//     }
+//
+//     else if (data == 0xF00D && !tab_ready){
+//         tab_ready = true;
+//     }
+//
+// }
+//
+// void change_data( int select, bool & type_ready, int & digit, std::vector<float> & circuit_data, std::vector<float> & temp_circuit_data){
 //     volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
 //
 //     int data;
 //     data = *(JTAG_UART_ptr);
 //
 //     if (type_ready){
-//         if (data == 0x45
+//         if (data == 0x45 && digit != 0) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select];
+//         if (data == 0x16) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 1;
+//         if (data == 0x1E) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 2;
+//         if (data == 0x26) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 3;
+//         if (data == 0x25) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 4;
+//         if (data == 0x2E) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 5;
+//         if (data == 0x36) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 6;
+//         if (data == 0x3D) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 7;
+//         if (data == 0x3E) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 8;
+//         if (data == 0x46) temp_circuit_data[select] = pow(10, digit) * temp_circuit_data[select] + 9;
+//
+//         if (data == 0x66) pow(10, )
 //         type_ready = false;
+//     } else if (!type_ready){
+//         if ()
 //     }
 //
 // }
 
-void compute(int size,
-            float *Vs,
-            float *Ic,
-            float *Vc,
-            float *v_stored,
+void compute(float & Vs[size],
+            float & Ic[size],
+            float & Vc[size],
+            float & v_stored,
             float amp,
             float freq,
             float phase,
             float cap,
             float res,
+            int size,
             float t,
             float t_not,
             bool sw1,
@@ -375,7 +393,7 @@ void compute(int size,
     else if (!sw1 && sw2)
     {
         Vc[size] = v_stored *  exp( -(t-t_not) / (res * cap) );
-        Ic[size] = - Vc[size] / res;
+        Ic[size] = - Vc / res;
     }
 
 }
