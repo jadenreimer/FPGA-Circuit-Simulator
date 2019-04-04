@@ -1,0 +1,29 @@
+bool sw1 = false;
+bool sw1_ready = true;
+bool sw2 = false;
+bool sw2_ready = true;
+
+void set_switches( bool & sw1, bool & sw2, bool & sw1_ready, bool & sw2_ready )
+{
+    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
+
+    int data;
+    data = *(JTAG_UART_ptr);
+    if (data == 0x1A && sw1_ready){
+        sw1 = !sw1;
+        sw1_ready = false;
+    }
+
+    else if (data == 0xF01A && !sw1_ready){
+        sw1_ready = true;
+    }
+
+    if (data == 0x22 && sw2_ready){
+        sw2 = !sw2;
+        sw2_ready = false;
+    }
+
+    else if (data == 0xF022 && !sw2_ready){
+        sw2_ready = true;
+    }
+}

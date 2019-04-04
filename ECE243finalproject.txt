@@ -1,0 +1,32 @@
+ECE 243 Final Project
+=====================
+
+Project due on April 3rd, but we can still hand it in until the following week
+
+We have selected option 2:
+
+"Create a new animation of your choosing. For example, create a game of some sort. Again, the amount of work required should be at least as much as that needed for Lab Exercise 7"
+
+Our Proposal:
+-------------
+
+- Create a 2D scrolling video game that displays to the VGA display and uses the FPGA
+- The user of said game will be tasked with scoring as many points as possible
+- Points are accumulated automatically over time, therefore the user's primary task will be to "survive" as long as possible
+- The user will attempt to control the jumping motion of a small square
+- The user's square will appear stationary on the left side of the screen, and obstacle squares will approach it from the right at a constant
+- To continue his/her session, the user must use the jumping action of their square to avoid the obstacle squares
+- A user's session is terminated (the user "dies") when their square contacts an obstacle square
+- The user's score will stop increasing and their screen will display a message, indicating their loss, and their score
+- The user can "jump" with the square again to reset their score and try again
+
+Possible Next Steps:
+--------------------
+
+1. Have the square's jumping action be controlled from the keyboard, rather than the FPGA
+2. Change the shape of the user's playable object from a square to another object or thing
+3. Change the shape of the obstacles from a square to another object
+4. Have the game's speed slowly increase over time, to create difficulty for the user
+5. Have the jumping animation be changed to something more realistic
+6. Have the user's score displayed onscreen
+7. Have the game output sound
