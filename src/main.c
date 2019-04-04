@@ -169,7 +169,7 @@ void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, fl
         (*select)++;
         if ((*select)>4) (*select) = 0;
         *tab_ready = false;
-        *temp_circuit_data = *circuit_data;
+        memcpy(temp_circuit_data, circuit_data, 6);
     }
 
     else if (data == 0xF00D && !(*tab_ready)){
@@ -202,7 +202,7 @@ void change_data( int *select, int *digit, bool *type_ready, float *circuit_data
         }
 
         else if (data == 0x5A){
-            *circuit_data = *temp_circuit_data;
+            memcpy(circuit_data, temp_circuit_data, 6);
             *digit=0;
         }
 
