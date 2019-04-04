@@ -15,6 +15,10 @@
 //VGA
 #define X_DIM 320
 #define Y_DIM 240
+#define GRAPH_LEN 80
+#define ARROW_LEN (GRAPH_LEN/20)
+
+// extern short CAP_RAW [120][80];
 
 volatile int pixel_buffer_start; // global variable
 
@@ -161,6 +165,41 @@ void clear_screen(){
         }
     }
     return;
+}
+
+void draw_graph(int x, int y, int size, float values[size]){
+    //bars of the graph
+    draw_line(x, y + GRAPH_LEN, x, y - GRAPH_LEN, BLACK);
+    draw_line(x, y, x + GRAPH_LEN, y, BLACK);
+
+    //arrows of the graph
+    //top arrow
+    draw_line(x, y - GRAPH_LEN, x-ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, BLACK);
+    draw_line(x, y - GRAPH_LEN, x+ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, BLACK);
+    //right arrow
+    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y-ARROW_LEN, BLACK);
+    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y+ARROW_LEN, BLACK);
+    //bottom arrow
+    draw_line(x, y + GRAPH_LEN, x-ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, BLACK);
+    draw_line(x, y + GRAPH_LEN, x+ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, BLACK);
+
+    float max = 0;
+    //find the max in the array
+    for(int i = 0; i < size-1; i++){
+        if(max < values[i]) max = values[i];
+    }
+
+    //graph the values
+    for(int i = 0; i < size-2; i++){
+        draw_line((int)(x+i*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*values[i]/max),
+                (int)(x+(i+1)*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*values[i+1]/max), RED);
+    }
+}
+
+void charge_and_voltage(int charge[size], int voltage[size]){
+    for (int k = numItems; k > i; k--){
+        items[k]=items[k-1];
+    }
 }
 
 void draw_line(int x0, int y0, int x1, int y1, short int line_colour){
