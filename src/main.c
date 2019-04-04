@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <math.h>
 
 // Colours
 #define RED 0xF800
@@ -15,6 +16,7 @@
 //VGA
 #define X_DIM 320
 #define Y_DIM 240
+#define GRAPH_LEN 80
 
 // extern short CAP_RAW [120][80];
 
@@ -23,7 +25,9 @@ volatile int pixel_buffer_start; // global variable
 void clear_screen();
 void draw_line(int xi, int yi, int xf, int yf, short int line_color);
 // void draw_image(int x_start, int y_start, int x_size, int y_size, extern short image);
+void draw_graph(int x, int y);
 void plot_pixel(int x, int y, short int line_color);
+void charge_and_voltage(int charge[size], int voltage[size]);
 void swap (int* x, int* y);
 void wait_for_vsync();
 void clear_line(int xi, int xf, int y);
@@ -49,16 +53,32 @@ int main(void){
     *(pixel_ctrl_ptr + 1) = SDRAM_MEM;
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
+    //UI Variables
+    int graph_x_dist = 210;
+    int graph_y_dist = 110;
+
+    //Graph data
+    int voltage[70];
+    int charge[70];
+    int time_counter = 0;
+
     while (true){
         //  clear screen
         clear_screen();
-
         int x_pos = 160-80/2;
         int y_pos = 240/2-120/2;
 
         //Debugging
-        draw_line(x_pos, 50, 50, y_pos, BLACK);
+        // draw_line(x_pos, 50, 50, y_pos, BLACK);
 
+        //Calculate charge and voltage
+        if(time_counter == 5){
+            charge_and_voltage(int charge[size], int voltage[size]);
+            time_counter = 0;
+        }
+        //Draw graphs to the right of the circuit
+        draw_graph(graph_x_dist, graph_y_dist);
+        draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         // int i, j;
         // for (i=0; i<120; i++)
         //     for (j=0; j<80; j++)
@@ -85,6 +105,27 @@ void clear_screen(){
         }
     }
     return;
+}
+
+void draw_graph(int x, int y){
+    int arrow_len = 5;
+    //bars of the graph
+    draw_line(x, y, x, y - GRAPH_LEN, BLACK);
+    draw_line(x, y, x + GRAPH_LEN, y, BLACK);
+
+    //arrows of the graph
+    //top arrow
+    draw_line(x, y - GRAPH_LEN, x-arrow_len, y-GRAPH_LEN+arrow_len, BLACK);
+    draw_line(x, y - GRAPH_LEN, x+arrow_len, y-GRAPH_LEN+arrow_len, BLACK);
+    //right arrow
+    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-arrow_len, y-arrow_len, BLACK);
+    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-arrow_len, y+arrow_len, BLACK);
+}
+
+void charge_and_voltage(int charge[size], int voltage[size]){
+    for (int k = numItems; k > i; k--){
+        items[k]=items[k-1];
+    }
 }
 
 void draw_line(int x0, int y0, int x1, int y1, short int line_colour){
