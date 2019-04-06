@@ -1,6 +1,5 @@
 #include <stdbool.h>
 #include <math.h>
-//#include "arm.h"
 
 // Colours
 #define RED 0xF800
@@ -22,8 +21,6 @@
 #define ARROW_LEN (GRAPH_LEN/20)
 
 // extern short CAP_RAW [120][80];
-
-volatile int pixel_buffer_start; // global variable
 
 // short int circuit[54][320] = {
   // 0x04, 0x02, 0x04, 0xff, 	/*Color of index 0*/
@@ -289,6 +286,8 @@ volatile int pixel_buffer_start; // global variable
 
 void clear_screen();
 
+volatile int pixel_buffer_start; // global variable
+
 void draw_line(int xi, int yi, int xf, int yf, short int line_color);
 // void draw_image(int x_start, int y_start, int x_size, int y_size, extern short image);
 void draw_graph(int x, int y, int size, float values[size]);
@@ -354,11 +353,11 @@ int main(void){
     float Ic[size];
     float Vc[size];
     float v_stored = 0.0;
-    float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3};
+    float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 1, 2, 1, 0};
 
     //time data
     int tc = 0;
-    float t = 0.0;
+    double t = 0.0;
     float t_not = 0.0;
 
     //circuit data
@@ -398,38 +397,38 @@ int main(void){
         // lit++;
 
         //Calculate Ic and Vs
-        if(tc == 5){
+        if(tc == 1){
 
-            compute(size,
-                    Vs,
-                    Ic,
-                    Vc,
-                    &v_stored,
-                    circuit_data[0],
-                    circuit_data[1],
-                    circuit_data[2],
-                    circuit_data[3],
-                    circuit_data[4],
-                    t,
-                    t_not,
-                    sw1,
-                    sw2);
+            // compute(size,
+            //         Vs,
+            //         Ic,
+            //         Vc,
+            //         &v_stored,
+            //         circuit_data[0],
+            //         circuit_data[1],
+            //         circuit_data[2],
+            //         circuit_data[3],
+            //         circuit_data[4],
+            //         t,
+            //         t_not,
+            //         sw1,
+            //         sw2);
 
             t = t + 1.0;
-            tc = 0;
 
             //Debugging only
-            // for(int i=0; i<28; i++){
-            //     if(i < 15)
-            //         test[i] = sin(i)*test[i+1];
-            //     else test[i] = sin(i)/test[i+1];
-            // }
-            // test[29] = test[28]*2;
+            for(int i=0; i<29; i++){
+                // if(i < 15)
+                //     test[i] = sin(i)*test[i+1];
+                // else test[i] = sin(i)/test[i+1];
+                test[i] = test[i+1];
+            }
+            test[29] = sin(t);
             tc = 0;
         }
 
         //Draw graphs to the right of the circuit
-        draw_graph(200, 120, 70, Vs);
+        draw_graph(200, 120, 30, test);
         tc++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         //draw_graph(graph_x_dist, graph_y_dist);
