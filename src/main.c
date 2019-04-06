@@ -13,6 +13,7 @@
 #define PIXEL_BUFF_REG 0xFF203020   //Controls pixel buffer functionality
 #define ON_CHIP_MEM 0xC8000000  //First pixel buffer
 #define SDRAM_MEM 0xC0000000    //Second pixel buffer
+#define CHAR_BUFFER 0xC9000000
 
 //VGA
 #define X_DIM 320
@@ -155,8 +156,8 @@ int main(void){
         set_switches(&sw1, &sw2, &sw1_ready, &sw2_ready);
         if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
 
-        tab_over(&select, &digit, &tab_ready, circuit_data, temp_circuit_data);
-        change_data(&select, &digit, &type_ready, circuit_data, temp_circuit_data);
+        // tab_over(select, tab_ready);
+        // change_data(select, type_ready, circuit_data, temp_circuit_data);
     }
 }
 
@@ -279,7 +280,6 @@ void draw_square(int x, int y, short int color){
         for (int j = y; j < (y+5); j++){
             plot_pixel(i, j, color);
         }
-
     }
 }
 
