@@ -347,6 +347,7 @@ int main(void){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
     int size = 70;
+    int debug_switches = 0;
 
     //Graph data
     float Vs[size];// = {0};
@@ -434,11 +435,17 @@ int main(void){
             tc = 0;
         }
 
+		if(debug_switches == 8){
+            sw1=false;
+            sw2=true;
+        }
+
         //Draw graphs to the right of the circuit
         draw_graph(10, 120, sizeof(Vs)/sizeof(Vs[0]), Vs);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
         draw_graph(100, 120, sizeof(Vc)/sizeof(Vc[0]), Vc);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
         draw_graph(200, 120, sizeof(Ic)/sizeof(Ic[0]), Ic);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
         tc++;
+        debug_switches++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         //draw_graph(graph_x_dist, graph_y_dist);
         //draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
@@ -748,7 +755,7 @@ void compute(int size,
 
     if (!sw1 && !sw2){
         Ic[size-1] = 0;
-        Vc[size-1] = Vs[size-1];
+        Vc[size-1] = Vc[size-1];//Vs[size-1];
         *v_stored = Vc[size-1];
     }
 
