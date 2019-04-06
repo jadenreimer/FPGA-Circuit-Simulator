@@ -349,11 +349,18 @@ int main(void){
     int size = 70;
 
     //Graph data
-    float Vs[size];
-    float Ic[size];
-    float Vc[size];
+    float Vs[size];// = {0};
+    float Ic[size];// = {0};
+    float Vc[size];// = {0};
+
+    for(int i = 0; i<size; i++){
+        Vs[i] = 0;
+        Vc[i] = 0;
+        Ic[i] = 0;
+    }
+
     float v_stored = 0.0;
-    float test[30] = {1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 1, 2, 1, 0};
+    float test[30] = {Vs[69], Ic[69], Vc[69], v_stored, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 1, 2, 1, 1};
 
     //time data
     int tc = 0;
@@ -399,20 +406,20 @@ int main(void){
         //Calculate Ic and Vs
         if(tc == 1){
 
-            // compute(size,
-            //         Vs,
-            //         Ic,
-            //         Vc,
-            //         &v_stored,
-            //         circuit_data[0],
-            //         circuit_data[1],
-            //         circuit_data[2],
-            //         circuit_data[3],
-            //         circuit_data[4],
-            //         t,
-            //         t_not,
-            //         sw1,
-            //         sw2);
+            compute(size,
+                    Vs,
+                    Ic,
+                    Vc,
+                    &v_stored,
+                    circuit_data[0],
+                    circuit_data[1],
+                    circuit_data[2],
+                    circuit_data[3],
+                    circuit_data[4],
+                    t,
+                    t_not,
+                    sw1,
+                    sw2);
 
             t = t + 1.0;
 
@@ -428,7 +435,9 @@ int main(void){
         }
 
         //Draw graphs to the right of the circuit
-        draw_graph(200, 120, 30, test);
+        draw_graph(10, 120, sizeof(Vs)/sizeof(Vs[0]), Vs);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
+        draw_graph(100, 120, sizeof(Vc)/sizeof(Vc[0]), Vc);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
+        draw_graph(200, 120, sizeof(Ic)/sizeof(Ic[0]), Ic);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
         tc++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         //draw_graph(graph_x_dist, graph_y_dist);
@@ -478,10 +487,10 @@ void draw_graph(int x, int y, int size, float values[size]){
     draw_line(x, y + GRAPH_LEN, x-ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, BLACK);
     draw_line(x, y + GRAPH_LEN, x+ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, BLACK);
 
-    float max = 0;
+    float max = 0.000001;
     //find the max in the array
     for(int i = 0; i < size-1; i++){
-        int check = values[i];
+        float check = values[i];
         if(check < 0) check = -check;
         if(max < check) max = check;
     }
@@ -580,7 +589,8 @@ void draw_line(int x0, int y0, int x1, int y1, short int line_colour){
 }
 
 void plot_pixel(int x, int y, short int line_color){
-    *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
+    if(x<X_DIM && x>=0 && y<Y_DIM && y>=0)
+        *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = line_color;
 }
 
 void swap (int* x, int* y){
@@ -729,6 +739,7 @@ void compute(int size,
     for (int i = 0; i<size; i++){
         Ic[i] = Ic[i+1];
         Vs[i] = Vs[i+1];
+        Vc[i] = Vc[i+1];
     }
 
     float arg = (freq * (t - t_not)) - phase;
