@@ -230,7 +230,7 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2){
     draw_rect(x-1, y-3, x+1, y+3, RED);
     draw_rect(x-3, y-1, x+3, y+1, RED);
     //minus
-    draw_rect(x-3, y1, x+3, y+3, BLUE);
+    draw_rect(x-3, y+1, x+3, y+3, BLUE);
 
     //capacitor
     int cap_x = (x+ctr -5*width);
