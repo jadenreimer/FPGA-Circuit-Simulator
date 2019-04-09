@@ -156,16 +156,16 @@ int main(void){
                     sw1,
                     sw2);
 
-            t = t + 0.01;
+            t = t + 0.1;
 
-            //Debugging only
-            for(int i=0; i<29; i++){
-                // if(i < 15)
-                //     test[i] = sin(i)*test[i+1];
-                // else test[i] = sin(i)/test[i+1];
-                test[i] = test[i+1];
-            }
-            test[29] = sin(t);
+            // //Debugging only
+            // for(int i=0; i<29; i++){
+            //     // if(i < 15)
+            //     //     test[i] = sin(i)*test[i+1];
+            //     // else test[i] = sin(i)/test[i+1];
+            //     test[i] = test[i+1];
+            // }
+            // test[29] = sin(t);
             tc = 0;
         }
 
