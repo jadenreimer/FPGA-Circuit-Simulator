@@ -181,7 +181,7 @@ int main(void){
                     sw2,
                     ac);
 
-            t = t + 0.1;
+            t = t + 0.01;
 
             // //Debugging only
             // for(int i=0; i<29; i++){
@@ -571,7 +571,7 @@ void compute(int size,
                 *v_stored_const = *v_stored;
                 *change = true;
             }
-            Vc[size-1] = *(v_stored_const) *  exp( -(t-t_not) / (Rload * cap) );
+            Vc[size-1] = *(v_stored_const) * exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
             *v_stored = Vc[size-1];
         }
