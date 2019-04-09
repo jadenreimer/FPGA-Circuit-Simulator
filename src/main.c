@@ -1,6 +1,6 @@
 #include <stdbool.h>
 #include <math.h>
-//#include "arm.h"
+#include "arm.h"
 
 // Colours
 #define RED 0xF800
@@ -51,6 +51,7 @@ void clear_line(int xi, int xf, int y);
 void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
 void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data);
 void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data);;
+int get_jtag( void );
 
 int main(void){
     bool sw1 = false;
@@ -285,54 +286,47 @@ void draw_square(int x, int y, short int color){
 
 void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
 {
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
+    int data = get_jtag();
 
     if (data == 0x1A && (*sw1_ready)){
         *sw1 = !(*sw1);
-        *sw1_ready = false;
+        // *sw1_ready = false;
     }
 
-    else if (data == 0xF01A && !(*sw1_ready)){
-        *sw1_ready = true;
-    }
+    // else if (data == 0xF01A && !(*sw1_ready)){
+    //     *sw1_ready = true;
+    // }
 
     if (data == 0x22 && (*sw2_ready)){
         *sw2 = !(*sw2);
-        *sw2_ready = false;
+        // *sw2_ready = false;
     }
 
-    else if (data == 0xF022 && !(*sw2_ready)){
-        *sw2_ready = true;
-    }
+    // else if (data == 0xF022 && !(*sw2_ready)){
+    //     *sw2_ready = true;
+    // }
 }
 
-void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data){
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
+void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data)
+{
+    int data = get_jtag();
 
     if (data == 0x0D && (*tab_ready)){
         (*select)++;
         if ((*select)>4) (*select) = 0;
-        *tab_ready = false;
+        // *tab_ready = false;
         memcpy(temp_circuit_data, circuit_data, 6);
     }
 
-    else if (data == 0xF00D && !(*tab_ready)){
-        *tab_ready = true;
-    }
+    // else if (data == 0xF00D && !(*tab_ready)){
+    //     *tab_ready = true;
+    // }
 
 }
 
-void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data){
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
+void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data)
+{
+    int data = get_jtag();
 
     if (type_ready){
         if (data == 0x45 && (*digit) != 0) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select];
@@ -356,24 +350,24 @@ void change_data( int *select, int *digit, bool *type_ready, float *circuit_data
             *digit=0;
         }
 
-        type_ready = false;
-    } else if (!type_ready){
-        if (data == 0xF045 ||
-            data == 0xF016 ||
-            data == 0xF01E ||
-            data == 0xF026 ||
-            data == 0xF025 ||
-            data == 0xF02E ||
-            data == 0xF036 ||
-            data == 0xF03D ||
-            data == 0xF03E ||
-            data == 0xF046 ||
-            data == 0xF066 ||
-            data == 0xF05A){
-        	*type_ready = true;
-            *digit ++;
-        }
-    }
+        //type_ready = false;
+    }// else if (!type_ready){
+    //     if (data == 0xF045 ||
+    //         data == 0xF016 ||
+    //         data == 0xF01E ||
+    //         data == 0xF026 ||
+    //         data == 0xF025 ||
+    //         data == 0xF02E ||
+    //         data == 0xF036 ||
+    //         data == 0xF03D ||
+    //         data == 0xF03E ||
+    //         data == 0xF046 ||
+    //         data == 0xF066 ||
+    //         data == 0xF05A){
+    //     	*type_ready = true;
+    //         *digit ++;
+    //     }
+    // }
 }
 
 void compute(int size,
@@ -426,4 +420,16 @@ void compute(int size,
         Ic[size] = - Vc[size] / res;
     }
 
+}
+
+int get_jtag( void ){
+    //read from PS/2 address
+    volatile int* PS2_ptr = (int*) 0xFF201000;
+    //collect its data
+    int PS2_data = *(PS2_ptr);
+    //if RVALID is 1
+    //send back the make code of the PS/2 data
+    if (PS2_data & 0x00008000) return (data & 0xFF);
+    //otherwise, send NULL
+    else return ('\0');
 }
