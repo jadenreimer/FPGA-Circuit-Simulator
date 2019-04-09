@@ -133,7 +133,11 @@ int main(void){
         //  clear screen
         clear_screen();
         // clear_chars();
+
+        bool sw1_old = sw1;
+        bool sw2_old = sw2;
         set_switches(&sw1, &sw2, &ac);
+        if (sw1_old != sw1 || sw2_old != sw2) t_not = t;
         draw_circuit(40, 60, WHITE, sw1, sw2);
 
         //Voltage text
@@ -181,7 +185,7 @@ int main(void){
                     sw2,
                     ac);
 
-            t = t + 0.01;
+            t = t + 0.1;
 
             // //Debugging only
             // for(int i=0; i<29; i++){
@@ -499,7 +503,7 @@ void compute(int size,
             bool sw2,
             bool ac){
 
-    for (int i = 0; i<size; i++){
+    for (int i = 0; i<size-1; i++){
         Ic[i] = Ic[i+1];
         Vs[i] = Vs[i+1];
         Vc[i] = Vc[i+1];
@@ -520,15 +524,15 @@ void compute(int size,
 
         else if (sw1 && !sw2){
             Ic[size-1] = cap * amp * freq * cos(arg);
-            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rload * cap) ) );
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rin * cap) ) );
             *v_stored = Vc[size-1];
             *change = false;
         }
 
         else if (sw1 && sw2){
             float Rtot = (Rin * Rload) / (Rin + Rload);
-            Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (Rtot * cap) ) ) / Rtot) + (amp * cap * freq * (1 - exp( -(t-t_not) / (Rtot * cap) ) ) * cos(arg));
             Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap) ) );
+            Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (Rtot * cap) ) ) / Rtot) + (amp * cap * freq * (1 - exp( -(t-t_not) / (Rtot * cap) ) ) * cos(arg));
             *v_stored = Vc[size-1];
             *change = false;
         }
@@ -538,7 +542,7 @@ void compute(int size,
                 *v_stored_const = *v_stored;
                 *change = true;
             }
-            Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
+            Vc[size-1] = *(v_stored_const) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
             *v_stored = Vc[size-1];
         }
