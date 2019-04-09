@@ -38,8 +38,9 @@ void compute(	int size,
              	float amp,
                 float freq,
                 float phase,
+                float Rin,
                 float cap,
-                float res,
+                float Rload,
                 float t,
                 float t_not,
                 bool sw1,
@@ -491,7 +492,7 @@ void compute(int size,
         }
 
         else if (sw1 && sw2){
-            Rtot = (Rin * Rload) / (Rin + Rload);
+            float Rtot = (Rin * Rload) / (Rin + Rload);
             Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (Rtot * cap) ) ) / Rtot) + (amp * cap * freq * (1 - exp( -(t-t_not) / (Rtot * cap) ) ) * cos(arg));
             Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap) ) );
             *v_stored = Vc[size-1];
@@ -510,15 +511,15 @@ void compute(int size,
         }
 
         else if (sw1 && !sw2){
-            Vc[size-1] = Vs[size-1] (1 - exp( -(t-t_not) / (Rin * cap)));
-            Ic[size-1] = ( Vs[size-1] ( exp( -(t-t_not) / (Rin * cap) ) ) ) / Rin;
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rin * cap)));
+            Ic[size-1] = ( Vs[size-1] * ( exp( -(t-t_not) / (Rin * cap) ) ) ) / Rin;
             *v_stored = Vc[size-1];
         }
 
         else if (sw1 && sw2){
-            Rtot = (Rin * Rload) / (Rin + Rload);
-            Vc[size-1] = Vs[size-1] (1 - exp( -(t-t_not) / (Rtot * cap)));
-            Ic[size-1] = ( Vs[size-1] ( exp( -(t-t_not) / (Rtot * cap) ) ) ) / Rtot;
+            float Rtot = (Rin * Rload) / (Rin + Rload);
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap)));
+            Ic[size-1] = ( Vs[size-1] * ( exp( -(t-t_not) / (Rtot * cap) ) ) ) / Rtot;
             *v_stored = Vc[size-1];
         }
 
