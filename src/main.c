@@ -119,14 +119,6 @@ int main(void){
     float freq = 1;
     float phase = 0;
 
-    int select = 0;
-    // bool tab_ready = true;
-    // bool type_ready = true;
-
-    float circuit_data[5] = {amp, freq, phase, Rin, capacitance, Rload};
-    // float temp_circuit_data[5] = {0,0,0,0,0};
-    // int digit = 0;
-
     int lit = 0;
 
     while (true){
@@ -173,18 +165,17 @@ int main(void){
                     &v_stored,
                     &v_stored_const,
                     &change,
-                    circuit_data[0],
-                    circuit_data[1],
-                    circuit_data[2],
-                    circuit_data[3],
-                    circuit_data[4],
-                    circuit_data[5],
+                    amp,
+                    freq,
+                    phase,
+                    Rin,
+                    capacitance,
+                    Rload,
                     t,
                     t_not,
                     sw1,
                     sw2,
                     ac);
-
             t = t + 0.1;
 
             // //Debugging only
@@ -511,7 +502,7 @@ void compute(int size,
 
     float arg = (freq * (t - t_not)) - phase;
 
-    if (ac) Vs[size-1] = amp * sin(arg);
+    if (ac) Vs[size-1] = amp * sin(freq * t - phase);
     else Vs[size-1] = dc_voltage;
 
     if (ac)
