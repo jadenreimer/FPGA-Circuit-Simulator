@@ -36,6 +36,7 @@ void compute(	int size,
             	float *Vc,
              	float *v_stored,
                 float *v_stored_const,
+                bool *change,
              	float amp,
                 float freq,
                 float phase,
@@ -106,6 +107,7 @@ int main(void){
 
     float v_stored = 0.0;
     float v_stored_const = 0.0;
+    bool change = false;
     float dc_voltage = 12;
     //time data
     int tc = 0;
@@ -154,7 +156,8 @@ int main(void){
                     Ic,
                     Vc,
                     &v_stored,
-                    &v_stored_const;
+                    &v_stored_const,
+                    &change,
                     circuit_data[0],
                     circuit_data[1],
                     circuit_data[2],
@@ -459,6 +462,7 @@ void compute(int size,
             float *Vc,
             float *v_stored,
             float *v_stored_const,
+            bool *change,
             float amp,
             float freq,
             float phase,
@@ -487,12 +491,14 @@ void compute(int size,
         if (!sw1 && !sw2){
             Ic[size-1] = 0;
             Vc[size-1] = *v_stored;
+            *change = false;
         }
 
         else if (sw1 && !sw2){
             Ic[size-1] = cap * amp * freq * cos(arg);
             Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rload * cap) ) );
             *v_stored = Vc[size-1];
+            *change = false;
         }
 
         else if (sw1 && sw2){
@@ -500,13 +506,17 @@ void compute(int size,
             Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (Rtot * cap) ) ) / Rtot) + (amp * cap * freq * (1 - exp( -(t-t_not) / (Rtot * cap) ) ) * cos(arg));
             Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap) ) );
             *v_stored = Vc[size-1];
+            *change = false;
         }
 
         else if (!sw1 && sw2){
-            *v_stored_const = *v_stored;
+            if (!(*change)){
+                *v_stored_const = *v_stored;
+                *change = true
+            }
             Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
-            *v_stored = 0.0;
+            *v_stored = Vc[size-1];
         }
 
 
@@ -514,12 +524,14 @@ void compute(int size,
         if (!sw1 && !sw2){
             Ic[size-1] = 0;
             Vc[size-1] = *v_stored;
+            *change = false;
         }
 
         else if (sw1 && !sw2){
             Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rin * cap)));
             Ic[size-1] = ( Vs[size-1] * ( exp( -(t-t_not) / (Rin * cap) ) ) ) / Rin;
             *v_stored = Vc[size-1];
+            *change = false;
         }
 
         else if (sw1 && sw2){
@@ -527,13 +539,17 @@ void compute(int size,
             Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap)));
             Ic[size-1] = ( Vs[size-1] * ( exp( -(t-t_not) / (Rtot * cap) ) ) ) / Rtot;
             *v_stored = Vc[size-1];
+            *change = false;
         }
 
         else if (!sw1 && sw2){
-            *v_stored_const = *v_stored;
+            if (!(*change)){
+                *v_stored_const = *v_stored;
+                *change = true
+            }
             Vc[size-1] = *(v_stored_const) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
-            *v_stored = 0.0;
+            *v_stored = Vc[size-1];
         }
     }
 }
