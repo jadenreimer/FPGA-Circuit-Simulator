@@ -62,11 +62,6 @@ void write_string(int x, int y, int size, char string[size]);
 void clear_chars();
 void set_switches( bool *sw1, bool *sw2, bool *ac );
 
-// void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
-// void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data);
-// void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data);
-// int get_jtag( void );
-
 int main(void){
     bool sw1 = false;
     bool sw2 = false;
@@ -95,9 +90,9 @@ int main(void){
     int size = 70;
 
     //Graph data
-    float Vs[size];// = {0};
-    float Ic[size];// = {0};
-    float Vc[size];// = {0};
+    float Vs[size];
+    float Ic[size];
+    float Vc[size];
 
     for(int i = 0; i<size; i++){
         Vs[i] = 0;
@@ -512,7 +507,7 @@ void compute(int size,
         else if (!sw1 && sw2){
             if (!(*change)){
                 *v_stored_const = *v_stored;
-                *change = true
+                *change = true;
             }
             Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
@@ -545,7 +540,7 @@ void compute(int size,
         else if (!sw1 && sw2){
             if (!(*change)){
                 *v_stored_const = *v_stored;
-                *change = true
+                *change = true;
             }
             Vc[size-1] = *(v_stored_const) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
@@ -562,100 +557,3 @@ void set_switches(bool* sw1, bool* sw2, bool *ac)
     *(ac) = *(SW_ptr) & 0b1000000000;
     return;
 }
-// void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
-// {
-//     int data = get_jtag();
-//
-//     if (data == 0x1A && (*sw1_ready)){
-//         *sw1 = !(*sw1);
-//         *sw1_ready = false;
-//     }
-//
-//     else if (data == 0xF01A && !(*sw1_ready)){
-//          *sw1_ready = true;
-//     }
-//
-//     if (data == 0x22 && (*sw2_ready)){
-//         *sw2 = !(*sw2);
-//         *sw2_ready = false;
-//     }
-//
-//     else if (data == 0xF022 && !(*sw2_ready)){
-//         *sw2_ready = true;
-//     }
-// }
-
-// void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data)
-// {
-//     int data = get_jtag();
-//
-//     if (type_ready){
-//         if (data == 0x45 && (*digit) != 0) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select];
-//         else if (data == 0x16) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 1;
-//         else if (data == 0x1E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 2;
-//         else if (data == 0x26) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 3;
-//         else if (data == 0x25) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 4;
-//         else if (data == 0x2E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 5;
-//         else if (data == 0x36) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 6;
-//         else if (data == 0x3D) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 7;
-//         else if (data == 0x3E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 8;
-//         else if (data == 0x46) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 9;
-//
-//         else if (data == 0x66 && (*digit) != 0){
-//             temp_circuit_data[*select] = round(temp_circuit_data[*select]/pow(10, (*digit)));
-//             *digit--;
-//         }
-//
-//         else if (data == 0x5A){
-//             memcpy(circuit_data, temp_circuit_data, 6);
-//             *digit=0;
-//         }
-//
-//         type_ready = false;
-//     }else if (!type_ready){
-//          if (data == 0xF045 ||
-//              data == 0xF016 ||
-//              data == 0xF01E ||
-//              data == 0xF026 ||
-//              data == 0xF025 ||
-//              data == 0xF02E ||
-//              data == 0xF036 ||
-//              data == 0xF03D ||
-//              data == 0xF03E ||
-//              data == 0xF046 ||
-//              data == 0xF066 ||
-//              data == 0xF05A){
-//          	*type_ready = true;
-//              *digit ++;
-//          }
-//     }
-// }
-
-// void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data)
-// {
-//     int data = get_jtag();
-//
-//     if (data == 0x0D && (*tab_ready)){
-//         (*select)++;
-//         if ((*select)>4) (*select) = 0;
-//         // *tab_ready = false;
-//         memcpy(temp_circuit_data, circuit_data, 6);
-//     }
-//
-//     else if (data == 0xF00D && !(*tab_ready)){
-//          *tab_ready = true;
-//     }
-//
-// }
-
-// int get_jtag( void ){
-//     //read from PS/2 address
-//     volatile int* PS2_ptr = (int*) 0xFF200100;
-//     //collect its data
-//     int PS2_data = *(PS2_ptr);
-//     //if RVALID is 1
-//     //send back the make code of the PS/2 data
-//     if (PS2_data & 0x00008000) return (PS2_data & 0xFF);
-//     //otherwise, send NULL
-//     else return ('\0');
-// }
