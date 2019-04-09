@@ -1931,7 +1931,7 @@ int main(void){
                     sw1,
                     sw2);
 
-            t = t + 0.01;
+            t = t + 0.1;
     11ec:	e50ba030 	str	r10, [r11, #-48]	; 0xffffffd0
     11f0:	e50b9034 	str	r9, [r11, #-52]	; 0xffffffcc
     11f4:	e1a09005 	mov	r9, r5
@@ -2027,13 +2027,13 @@ int main(void){
                     sw1,
                     sw2);
 
-            t = t + 0.01;
+            t = t + 0.1;
     12e0:	e1a00004 	mov	r0, r4
     12e4:	e1a01005 	mov	r1, r5
-    12e8:	e301247b 	movw	r2, #5243	; 0x147b
-    12ec:	e34427ae 	movt	r2, #18350	; 0x47ae
-    12f0:	e3073ae1 	movw	r3, #31457	; 0x7ae1
-    12f4:	e3433f84 	movt	r3, #16260	; 0x3f84
+    12e8:	e309299a 	movw	r2, #39322	; 0x999a
+    12ec:	e3492999 	movt	r2, #39321	; 0x9999
+    12f0:	e3093999 	movw	r3, #39321	; 0x9999
+    12f4:	e3433fb9 	movt	r3, #16313	; 0x3fb9
     12f8:	eb0008fa 	bl	36e8 <__adddf3>
     12fc:	e1a04000 	mov	r4, r0
     1300:	e1a05001 	mov	r5, r1

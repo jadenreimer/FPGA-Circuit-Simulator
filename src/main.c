@@ -30,6 +30,7 @@ void draw_graph(int x, int y, int size, float values[size], short int colour);
 void plot_pixel(int x, int y, short int line_color);
 
 void compute(	int size,
+                float dc_voltage,
              	float *Vs,
              	float *Ic,
             	float *Vc,
@@ -42,7 +43,8 @@ void compute(	int size,
                 float t,
                 float t_not,
                 bool sw1,
-             	bool sw2);
+             	bool sw2,
+                bool ac);
 
 void swap (int* x, int* y);
 void wait_for_vsync();
@@ -55,7 +57,7 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2);
 void write_char(int x, int y, char c);
 void write_string(int x, int y, int size, char string[size]);
 void clear_chars();
-void set_switches( bool *sw1, bool *sw2 );
+void set_switches( bool *sw1, bool *sw2, bool *ac );
 
 // void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
 // void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data);
@@ -65,6 +67,7 @@ void set_switches( bool *sw1, bool *sw2 );
 int main(void){
     bool sw1 = false;
     bool sw2 = false;
+    bool ac = false;
 
     // declare other variables
     // short int draw_colour = BLUE;
@@ -100,7 +103,7 @@ int main(void){
     }
 
     float v_stored = 0.0;
-
+    float dc_voltage = 12;
     //time data
     int tc = 0;
     double t = 0.0;
@@ -108,7 +111,8 @@ int main(void){
 
     //circuit data
     float capacitance = 1 * pow(10, -6);
-    float resistance = 1000;
+    float Rload = 1000;
+    float Rin = 500;
 
     //signal data
     float amp = 1;
@@ -119,7 +123,7 @@ int main(void){
     // bool tab_ready = true;
     // bool type_ready = true;
 
-    float circuit_data[5] = {amp, freq, phase, capacitance, resistance};
+    float circuit_data[5] = {amp, freq, phase, Rin, capacitance, Rload};
     // float temp_circuit_data[5] = {0,0,0,0,0};
     // int digit = 0;
 
@@ -129,7 +133,7 @@ int main(void){
         //  clear screen
         clear_screen();
         clear_chars();
-        set_switches(&sw1, &sw2);
+        set_switches(&sw1, &sw2, &ac);
         draw_circuit(40, 100, WHITE, sw1, sw2);
 
         // draw_switches(50, 50, 50, 180, 60, false, true, RED);
@@ -142,6 +146,7 @@ int main(void){
         if(tc == 1){
 
             compute(size,
+                    dc_voltage,
                     Vs,
                     Ic,
                     Vc,
@@ -151,10 +156,12 @@ int main(void){
                     circuit_data[2],
                     circuit_data[3],
                     circuit_data[4],
+                    circuit_data[5],
                     t,
                     t_not,
                     sw1,
-                    sw2);
+                    sw2,
+                    ac);
 
             t = t + 0.1;
 
@@ -442,6 +449,7 @@ void draw_square(int x, int y, short int color){
 }
 
 void compute(int size,
+            float dc_voltage,
             float *Vs,
             float *Ic,
             float *Vc,
@@ -449,12 +457,14 @@ void compute(int size,
             float amp,
             float freq,
             float phase,
+            float Rin,
             float cap,
-            float res,
+            float Rload,
             float t,
             float t_not,
             bool sw1,
-            bool sw2){
+            bool sw2,
+            bool ac){
 
     for (int i = 0; i<size; i++){
         Ic[i] = Ic[i+1];
@@ -464,37 +474,67 @@ void compute(int size,
 
     float arg = (freq * (t - t_not)) - phase;
 
-    Vs[size-1] = amp * sin(arg);
+    if (ac) Vs[size-1] = amp * sin(arg);
+    else Vs[size-1] = dc_voltage;
 
-    if (!sw1 && !sw2){
-        Ic[size-1] = 0;
-        Vc[size-1] = Vc[size-1];//Vs[size-1];
-        *v_stored = Vc[size-1];
-    }
+    if (ac)
+    {
+        if (!sw1 && !sw2){
+            Ic[size-1] = 0;
+            Vc[size-1] = *v_stored;
+        }
 
-    else if (sw1 && !sw2){
-        Ic[size-1] = cap * amp * freq * cos(arg);
-        Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (res * cap) ) );
-        *v_stored = Vc[size-1];
-    }
+        else if (sw1 && !sw2){
+            Ic[size-1] = cap * amp * freq * cos(arg);
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rload * cap) ) );
+            *v_stored = Vc[size-1];
+        }
 
-    else if (sw1 && sw2){
-        Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (res * cap) ) ) / res) + (amp * cap * freq * (1 - exp( -(t-t_not) / (res * cap) ) ) * cos(arg));
-        Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (res * cap) ) );
-        *v_stored = Vc[size-1];
-    }
+        else if (sw1 && sw2){
+            Rtot = (Rin * Rload) / (Rin + Rload);
+            Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (Rtot * cap) ) ) / Rtot) + (amp * cap * freq * (1 - exp( -(t-t_not) / (Rtot * cap) ) ) * cos(arg));
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap) ) );
+            *v_stored = Vc[size-1];
+        }
 
-    else if (!sw1 && sw2){
-        Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (res * cap) );
-        Ic[size-1] = - Vc[size-1] / res;
+        else if (!sw1 && sw2){
+            Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
+            Ic[size-1] = - Vc[size-1] / Rload;
+        }
+
+
+    } else {
+        if (!sw1 && !sw2){
+            Ic[size-1] = 0;
+            Vc[size-1] = *v_stored;
+        }
+
+        else if (sw1 && !sw2){
+            Vc[size-1] = Vs[size-1] (1 - exp( -(t-t_not) / (Rin * cap)));
+            Ic[size-1] = ( Vs[size-1] ( exp( -(t-t_not) / (Rin * cap) ) ) ) / Rin;
+            *v_stored = Vc[size-1];
+        }
+
+        else if (sw1 && sw2){
+            Rtot = (Rin * Rload) / (Rin + Rload);
+            Vc[size-1] = Vs[size-1] (1 - exp( -(t-t_not) / (Rtot * cap)));
+            Ic[size-1] = ( Vs[size-1] ( exp( -(t-t_not) / (Rtot * cap) ) ) ) / Rtot;
+            *v_stored = Vc[size-1];
+        }
+
+        else if (!sw1 && sw2){
+            Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
+            Ic[size-1] = - Vc[size-1] / Rload;
+        }
     }
 }
 
-void set_switches(bool* sw1, bool* sw2)
+void set_switches(bool* sw1, bool* sw2, bool *ac)
 {
     volatile int* SW_ptr = (int*) 0xFF200040;
     *(sw1) = *(SW_ptr) & 0b0000000001;
     *(sw2) = *(SW_ptr) & 0b0000000010;
+    *(ac) = *(SW_ptr) & 0b1000000000;
     return;
 }
 // void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
