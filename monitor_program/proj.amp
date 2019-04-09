@@ -12,9 +12,9 @@
         <type>C Program</type>
         <source_files>
             <source_file filepath="true">../src/devices.c</source_file>
-            <source_file filepath="true">../src/devices.h</source_file>
-            <source_file filepath="true">../src/examples.c</source_file>
             <source_file filepath="true">../src/main.c</source_file>
+            <source_file filepath="true">../src/images.s</source_file>
+            <source_file filepath="true">../src/cap_raw.bin</source_file>
         </source_files>
         <options>
             <compiler_flags>-g -std=c99 -O1</compiler_flags>
