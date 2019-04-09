@@ -100,7 +100,6 @@ int main(void){
     }
 
     float v_stored = 0.0;
-    float test[30] = {Vs[69], Ic[69], Vc[69], v_stored, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 1, 2, 1, 1};
 
     //time data
     int tc = 0;
@@ -117,12 +116,12 @@ int main(void){
     float phase = 0;
 
     int select = 0;
-    bool tab_ready = true;
-    bool type_ready = true;
+    // bool tab_ready = true;
+    // bool type_ready = true;
 
     float circuit_data[5] = {amp, freq, phase, capacitance, resistance};
-    float temp_circuit_data[5] = {0,0,0,0,0};
-    int digit = 0;
+    // float temp_circuit_data[5] = {0,0,0,0,0};
+    // int digit = 0;
 
     int lit = 0;
 
@@ -157,7 +156,7 @@ int main(void){
                     sw1,
                     sw2);
 
-            t = t + 1.0;
+            t = t + 0.01;
 
             //Debugging only
             for(int i=0; i<29; i++){
@@ -171,8 +170,8 @@ int main(void){
         }
 
         //Draw graphs to the right of the circuit
-        draw_graph(240, 60, sizeof(Vs)/sizeof(Vs[0]), Vs, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
-        draw_graph(240, 180, sizeof(Vc)/sizeof(Vc[0]), Vc, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
+        draw_graph(240, 60, sizeof(Vs)/sizeof(Vs[0]), Vc, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
+        draw_graph(240, 180, sizeof(Vc)/sizeof(Vc[0]), Ic, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
         // draw_graph(240, 180, sizeof(Ic)/sizeof(Ic[0]), Ic, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
         tc++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
