@@ -134,12 +134,14 @@ int main(void){
         clear_screen();
         // clear_chars();
         set_switches(&sw1, &sw2, &ac);
-        draw_circuit(40, 100, WHITE, sw1, sw2);
+        draw_circuit(40, 60, WHITE, sw1, sw2);
 
         //Voltage text
         // char out[] = "Voltage\0";
-        write_string(5, 40, 7, "Voltage");
-        // write_string(38, 15, 5, "phase");
+
+        write_string(15, 30, 18, "Source Voltage, Vs");//18
+        write_string(50, 1, 21, "Capacitor Voltage, Vc");//21
+        write_string(50, 30, 21, "Capacitor Current, Ic");//21
         // write_string(40, 5, 8, out);
         // write_string(40, 5, 8, out);
         //
@@ -195,7 +197,7 @@ int main(void){
         //Draw graphs to the right of the circuit
         draw_graph(200, 60, sizeof(Vs)/sizeof(Vs[0]), Vc, WHITE);
         draw_graph(200, 180, sizeof(Vc)/sizeof(Vc[0]), Ic, WHITE);
-        draw_graph(60, 180, sizeof(Ic)/sizeof(Ic[0]), Ic, WHITE);
+        draw_graph(60, 180, sizeof(Ic)/sizeof(Ic[0]), Vs, WHITE);
         tc++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         // draw_graph(graph_x_dist, graph_y_dist);
@@ -230,7 +232,7 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2){
     draw_rect(x-1, y-3, x+1, y+3, RED);
     draw_rect(x-3, y-1, x+3, y+1, RED);
     //minus
-    draw_rect(x-3, y1, x+3, y+3, BLUE);
+    draw_rect(x-3, y+1, x+3, y+3, BLUE);
 
     //capacitor
     int cap_x = (x+ctr -5*width);
