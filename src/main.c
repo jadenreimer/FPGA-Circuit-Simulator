@@ -132,9 +132,23 @@ int main(void){
     while (true){
         //  clear screen
         clear_screen();
-        clear_chars();
+        // clear_chars();
         set_switches(&sw1, &sw2, &ac);
         draw_circuit(40, 100, WHITE, sw1, sw2);
+
+        //Voltage text
+        // char out[] = "Voltage\0";
+        write_string(5, 40, 7, "Voltage");
+        // write_string(38, 15, 5, "phase");
+        // write_string(40, 5, 8, out);
+        // write_string(40, 5, 8, out);
+        //
+        // //Capacitor text
+        // write_string(40, 5, 8, out);
+        //
+        // //Resistor text
+        // write_string(40, 5, 8, out);
+        // lit++;
 
         // draw_switches(50, 50, 50, 180, 60, false, true, RED);
 
@@ -179,9 +193,9 @@ int main(void){
         }
 
         //Draw graphs to the right of the circuit
-        draw_graph(240, 60, sizeof(Vs)/sizeof(Vs[0]), Vc, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
-        draw_graph(240, 180, sizeof(Vc)/sizeof(Vc[0]), Ic, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
-        // draw_graph(240, 180, sizeof(Ic)/sizeof(Ic[0]), Ic, WHITE);//some fucking difference between Vs and test here means the graph straight up doesn't plot vs plotting
+        draw_graph(200, 60, sizeof(Vs)/sizeof(Vs[0]), Vc, WHITE);
+        draw_graph(200, 180, sizeof(Vc)/sizeof(Vc[0]), Ic, WHITE);
+        draw_graph(60, 180, sizeof(Ic)/sizeof(Ic[0]), Ic, WHITE);
         tc++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         // draw_graph(graph_x_dist, graph_y_dist);
@@ -206,26 +220,26 @@ int main(void){
 
 void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2){
 
-    int width = 5;
-    int ctr = 80;
+    int width = 4;
+    int ctr = 50;
     //source
-    int radius = 30;
+    int radius = 15;
     draw_circle(x, y, radius, WHITE);
     draw_circle(x, y, radius-width, BLACK);
     //plus
-    draw_rect(x-3, y-20, x+3, y, RED);
-    draw_rect(x-14, y-13, x+14, y-7, RED);
+    draw_rect(x-1, y-3, x+1, y+3, RED);
+    draw_rect(x-3, y-1, x+3, y+1, RED);
     //minus
-    draw_rect(x-14, y+10, x+14, y+16, BLUE);
+    draw_rect(x-3, y1, x+3, y+3, BLUE);
 
     //capacitor
     int cap_x = (x+ctr -5*width);
-    draw_rect(cap_x, y-2*width, cap_x + 10*width, y-width, WHITE);
-    draw_rect(cap_x, y+width, cap_x + 10*width, y+2*width, WHITE);
+    draw_rect(cap_x, y-2*width/2, cap_x + 10*width, y-width/2, WHITE);
+    draw_rect(cap_x, y+width/2, cap_x + 10*width, y+2*width/2, WHITE);
 
     //resistor
-    int diag_x = 15;
-    int diag_y = 10;
+    int diag_x = 10;
+    int diag_y = 5;
     int res_x = (x+2*ctr);
     int res_y = y-diag_x;//resistor goes down 40 pixels from here
 
@@ -239,19 +253,30 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2){
         res_y++;
     }
     //switches
-    draw_switches(30, x + 10, y-ctr, x + 10 + ctr, y - ctr, sw1, sw2, WHITE);
+    draw_switches(20, x + 10, y-ctr+20, x + 20 + ctr, y - ctr+20, sw1, sw2, WHITE);
 
     //ground
     int gnd_ctr = x + ctr;
     int gnd_y = y+ctr-20;
-    draw_rect(gnd_ctr-width/2, gnd_y, gnd_ctr+width/2, gnd_y+2*width, WHITE);//stem
-    draw_rect(gnd_ctr-4*width, gnd_y+2*width, gnd_ctr+4*width, gnd_y+3*width, WHITE);//1st layer
-    draw_rect(gnd_ctr-2*width, gnd_y+4*width, gnd_ctr+2*width, gnd_y+5*width, WHITE);//2nd
-    draw_rect(gnd_ctr-width, gnd_y+6*width, gnd_ctr+width, gnd_y+7*width, WHITE);//3rd
+    draw_rect(gnd_ctr-width/2, gnd_y, gnd_ctr+width/2, gnd_y+width/2, WHITE);//stem
+    draw_rect(gnd_ctr-4*width, gnd_y+width, gnd_ctr+4*width, gnd_y+3/2*width, WHITE);//1st layer
+    draw_rect(gnd_ctr-2*width, gnd_y+2*width, gnd_ctr+2*width, gnd_y+5/2*width, WHITE);//2nd
+    draw_rect(gnd_ctr-width, gnd_y+3*width, gnd_ctr+width, gnd_y+7/2*width, WHITE);//3rd
 
     //wires
+    res_y-=5;
+    int w = width/4;
+    draw_rect(x-w, y-ctr+20, x+w, y-radius, WHITE);//source up
+    draw_rect(x, y-ctr+20-w, x+4, y-ctr+20+w, WHITE);//source top right
+    draw_rect(x+34, y-ctr+20-w, x+64, y-ctr+20+w, WHITE);//right of first switch
+    draw_rect(x+94, y-ctr+20-w, res_x, y-ctr+20+w, WHITE);//right of second switch
+    draw_rect(res_x-w, y-ctr+20, res_x+w, res_y+3, WHITE);//down to resistor
+    draw_rect(x+ctr-w, y-ctr+20, x+ctr+w, y-5, WHITE);//down to capacitor
+    draw_rect(x+ctr-w, y+5, x+ctr+w, gnd_y, WHITE);//down from capacitor
+    draw_rect(res_x-w, res_y+5*diag_y, res_x+w, gnd_y, WHITE);//down from resistor
+    draw_rect(x, gnd_y-w, res_x, gnd_y+w, WHITE);//across the bottom
+    draw_rect(x-w, y+radius, x+w, gnd_y, WHITE);//up to source
 
-    //text add-ons
 }
 
 void clear_screen(){
@@ -268,15 +293,15 @@ void clear_screen(){
 void draw_graph(int x, int y, int size, float values[size], short int colour){
     //bars of the graph
     draw_line(x, y + GRAPH_LEN, x, y - GRAPH_LEN, colour);//up-down
-    draw_line(x, y, x + GRAPH_LEN, y, colour);//horizontal
+    draw_line(x, y, x + 2*GRAPH_LEN, y, colour);//horizontal
 
     //arrows of the graph
     //top arrow
     draw_line(x, y - GRAPH_LEN, x-ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, colour);
     draw_line(x, y - GRAPH_LEN, x+ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, colour);
     //right arrow
-    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y-ARROW_LEN, colour);
-    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y+ARROW_LEN, colour);
+    draw_line(x + 2*GRAPH_LEN, y, x+2*GRAPH_LEN-ARROW_LEN, y-ARROW_LEN, colour);
+    draw_line(x + 2*GRAPH_LEN, y, x+2*GRAPH_LEN-ARROW_LEN, y+ARROW_LEN, colour);
     //bottom arrow
     draw_line(x, y + GRAPH_LEN, x-ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, colour);
     draw_line(x, y + GRAPH_LEN, x+ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, colour);
@@ -291,8 +316,8 @@ void draw_graph(int x, int y, int size, float values[size], short int colour){
 
     //graph the values
     for(int i = 0; i < size-2; i++){
-        draw_line((int)(x+i*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i]/max)),
-                (int)(x+(i+1)*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i+1]/max)), RED);
+        draw_line((int)(x+i*(2*GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i]/max)),
+                (int)(x+(i+1)*(2*GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i+1]/max)), RED);
     }
 }
 
@@ -319,20 +344,22 @@ void clear_chars(){
 
 void draw_switches(int len, int x0, int y0, int x1, int y1, bool sw1, bool sw2, int colour){
     if(sw1){
-        draw_line(x0, y0, x0 + len, y0, colour);
+        draw_rect(x0, y0-3, x0 + len, y0+3, colour);
     }else{
-        draw_line(x0, y0, (x0 + len)*4/5, y0 + len/3, colour);
+        for(int i = 0; i<4; i++)
+            draw_line(x0, y0+i, (x0 + len)*4/5, y0+i + len/3, colour);
     }
 
     if(sw2){
-        draw_line(x1, y1, x1 + len, y1, colour);
+        draw_rect(x1, y1-3, x1 + len, y1+3, colour);
     }else{
-        draw_line(x1, y1, (x1 + len)*4/5, y1 + len/3, colour);
+        for(int i = 0; i<4; i++)
+            draw_line(x1, y1+i, (x1 + len)*4/5, y1+i + len/3, colour);
     }
 
     //circle bois 1
-    int radius = 5;
-    int width = 2;
+    int radius = 7;
+    int width = 3;
     draw_circle(x0, y0, radius, colour);//left
     draw_circle(x0, y0, radius-width, BLACK);
     draw_circle(x0+len, y0, radius, colour);//right
@@ -341,8 +368,8 @@ void draw_switches(int len, int x0, int y0, int x1, int y1, bool sw1, bool sw2, 
     //circle bois 2
     draw_circle(x1, y1, radius, colour);//left
     draw_circle(x1, y1, radius-width, BLACK);
-    draw_circle(x0+len, y0, radius, colour);//right
-    draw_circle(x0+len, y0, radius-width, BLACK);
+    draw_circle(x1+len, y1, radius, colour);//right
+    draw_circle(x1+len, y1, radius-width, BLACK);
 }
 
 void draw_frame(int x0, int y0, int x1, int y1, short int colour){
