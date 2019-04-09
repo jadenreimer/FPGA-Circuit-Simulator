@@ -16,11 +16,11 @@ OC		:= arm-altera-eabi-objcopy
 RM		:= rm -f
 
 # Flags
-USERCCFLAGS	:= -g -std=c99 -O1
+USERCCFLAGS	:= -g -O1 -std=c99
 ARCHASFLAGS	:= -mfloat-abi=soft -march=armv7-a -mcpu=cortex-a9 --gstabs -I "$$GNU_ARM_TOOL_ROOTDIR/arm-altera-eabi/include/"
 ARCHCCFLAGS	:= -mfloat-abi=soft -march=armv7-a -mtune=cortex-a9 -mcpu=cortex-a9
-ARCHLDFLAGS	:= --defsym arm_program_mem=0x40 --defsym arm_available_mem_size=0x3fffffb8 --defsym __cs3_stack=0x3ffffff8 --section-start .vectors=0x0
-ARCHLDSCRIPT	:= -T"C:/intelFPGA_lite/18.0/University_Program/Monitor_Program/build/altera-socfpga-hosted-with-vectors.ld"
+ARCHLDFLAGS	:= --defsym arm_program_mem=0x0 --defsym arm_available_mem_size=0x3ffffff8 --defsym __cs3_stack=0x3ffffff8
+ARCHLDSCRIPT	:= -T"C:/intelFPGA_lite/18.0/University_Program/Monitor_Program/build/altera-socfpga-hosted.ld"
 ASFLAGS		:= $(ARCHASFLAGS)
 CCFLAGS		:= -Wall -c $(USERCCFLAGS) $(ARCHCCFLAGS)
 LDFLAGS		:= $(patsubst %, -Wl$(DEFINE_COMMA)%, $(ARCHLDFLAGS)) $(ARCHLDSCRIPT)
@@ -28,19 +28,19 @@ OCFLAGS		:= -O srec
 
 # Files
 HDRS		:=
-SRCS		:= ../src/main.c
+SRCS		:= ps2_test.c
 OBJS		:= $(patsubst %, %.o, $(SRCS))
 
 # Targets
-compile: main.srec
+compile: ps2_test.srec
 
-main.srec: main.axf
+ps2_test.srec: ps2_test.axf
 	$(RM) $@
 	$(OC) $(OCFLAGS) $< $@
 
-main.axf: $(OBJS)
+ps2_test.axf: $(OBJS)
 	$(RM) $@
-	$(CC) $(LDFLAGS) $(OBJS) -o $@ -lm
+	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
 %.c.o: %.c $(HDRS)
 	$(RM) $@
@@ -51,5 +51,5 @@ main.axf: $(OBJS)
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
-	$(RM) main.srec main.axf $(OBJS)
+	$(RM) ps2_test.srec ps2_test.axf $(OBJS)
 

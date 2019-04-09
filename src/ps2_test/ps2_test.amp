@@ -11,23 +11,15 @@
     <program>
         <type>C Program</type>
         <source_files>
-            <source_file filepath="true">../src/main.c</source_file>
+            <source_file filepath="true">ps2_test.c</source_file>
         </source_files>
         <options>
-            <compiler_flags>-g -std=c99 -O1</compiler_flags>
-            <linker_flags>-lm</linker_flags>
+            <compiler_flags>-g -O1 -std=c99</compiler_flags>
         </options>
-        <linker_sections type="Exceptions">
-            <linker_section name=".vectors">
-                <memory_device>ARM_DDR3_SDRAM.axi_slave</memory_device>
-                <base_address>0x00000000</base_address>
-                <end_address>0x0000003F</end_address>
-                <required_section/>
-                <fixed_base_address/>
-            </linker_section>
+        <linker_sections type="Basic">
             <linker_section name=".text">
                 <memory_device>ARM_DDR3_SDRAM.axi_slave</memory_device>
-                <base_address>0x00000040</base_address>
+                <base_address>0x00000000</base_address>
                 <end_address>0x3FFFFFF7</end_address>
                 <required_section/>
             </linker_section>

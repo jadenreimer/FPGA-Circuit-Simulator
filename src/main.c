@@ -47,9 +47,6 @@ void compute(	int size,
 void swap (int* x, int* y);
 void wait_for_vsync();
 void clear_line(int xi, int xf, int y);
-void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
-void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data);
-void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data);
 void draw_frame(int x0, int y0, int x1, int y1, short int colour);
 void draw_rect(int x0, int y0, int x1, int y1, short int colour);
 void draw_circle(int x, int y, int r, short int colour);
@@ -58,12 +55,16 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2);
 void write_char(int x, int y, char c);
 void write_string(int x, int y, int size, char string[size]);
 void clear_chars();
+void set_switches( bool *sw1, bool *sw2 );
+
+// void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
+// void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data);
+// void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data);
+// int get_jtag( void );
 
 int main(void){
-    bool sw1 = true;
-    bool sw1_ready = true;
+    bool sw1 = false;
     bool sw2 = false;
-    bool sw2_ready = true;
 
     // declare other variables
     // short int draw_colour = BLUE;
@@ -86,7 +87,6 @@ int main(void){
     pixel_buffer_start = *(pixel_ctrl_ptr + 1); // we draw on the back buffer
 
     int size = 70;
-    int debug_switches = 0;
 
     //Graph data
     float Vs[size];// = {0};
@@ -100,7 +100,6 @@ int main(void){
     }
 
     float v_stored = 0.0;
-    float test[30] = {Vs[69], Ic[69], Vc[69], v_stored, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 2, 4, 8, 3, 1, 1, 2, 1, 1};
 
     //time data
     int tc = 0;
@@ -117,12 +116,12 @@ int main(void){
     float phase = 0;
 
     int select = 0;
-    bool tab_ready = true;
-    bool type_ready = true;
+    // bool tab_ready = true;
+    // bool type_ready = true;
 
     float circuit_data[5] = {amp, freq, phase, capacitance, resistance};
-    float temp_circuit_data[5] = {0,0,0,0,0};
-    int digit = 0;
+    // float temp_circuit_data[5] = {0,0,0,0,0};
+    // int digit = 0;
 
     int lit = 0;
 
@@ -130,8 +129,8 @@ int main(void){
         //  clear screen
         clear_screen();
         // clear_chars();
-
-        draw_circuit(40, 100, WHITE, sw1, sw2);
+        set_switches(&sw1, &sw2);
+        draw_circuit(30, 70, WHITE, sw1, sw2);
 
         //Voltage text
         // char out[] = "Voltage\0";
@@ -171,33 +170,27 @@ int main(void){
                     sw1,
                     sw2);
 
-            t = t + 1.0;
+            t = t + 0.1;
 
-            //Debugging only
-            for(int i=0; i<29; i++){
-                // if(i < 15)
-                //     test[i] = sin(i)*test[i+1];
-                // else test[i] = sin(i)/test[i+1];
-                test[i] = test[i+1];
-            }
-            test[29] = sin(t);
+            // //Debugging only
+            // for(int i=0; i<29; i++){
+            //     // if(i < 15)
+            //     //     test[i] = sin(i)*test[i+1];
+            //     // else test[i] = sin(i)/test[i+1];
+            //     test[i] = test[i+1];
+            // }
+            // test[29] = sin(t);
             tc = 0;
         }
 
-		if(debug_switches == 8){
-            sw1=false;
-            sw2=true;
-        }
-
         //Draw graphs to the right of the circuit
-        draw_graph(240, 60, sizeof(Vs)/sizeof(Vs[0]), Vs, WHITE);
-        draw_graph(240, 180, sizeof(Vc)/sizeof(Vc[0]), Vc, WHITE);
-        // draw_graph(240, 180, sizeof(Ic)/sizeof(Ic[0]), Ic, WHITE);
+        draw_graph(200, 60, sizeof(Vs)/sizeof(Vs[0]), Vc, WHITE);
+        draw_graph(200, 180, sizeof(Vc)/sizeof(Vc[0]), Ic, WHITE);
+        draw_graph(60, 180, sizeof(Ic)/sizeof(Ic[0]), Ic, WHITE);
         tc++;
-        debug_switches++;
         // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
-        //draw_graph(graph_x_dist, graph_y_dist);
-        //draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
+        // draw_graph(graph_x_dist, graph_y_dist);
+        // draw_graph(graph_x_dist, graph_y_dist + GRAPH_LEN + 20); //this one is drawn below the other
         // int i, j;
         // for (i=0; i<120; i++)
         //     for (j=0; j<80; j++)
@@ -232,8 +225,8 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2){
 
     //capacitor
     int cap_x = (x+ctr -5*width);
-    draw_rect(cap_x, y-2*width, cap_x + 10*width, y-width, WHITE);
-    draw_rect(cap_x, y+width, cap_x + 10*width, y+2*width, WHITE);
+    draw_rect(cap_x, y-2*width/2, cap_x + 10*width, y-width/2, WHITE);
+    draw_rect(cap_x, y+width/2, cap_x + 10*width, y+2*width/2, WHITE);
 
     //resistor
     int diag_x = 10;
@@ -251,21 +244,30 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2){
         res_y++;
     }
     //switches
-    draw_switches(20, x + 10, y-ctr, x + 20 + ctr, y - ctr, sw1, sw2, WHITE);
+    draw_switches(20, x + 10, y-ctr+20, x + 20 + ctr, y - ctr+20, sw1, sw2, WHITE);
 
     //ground
     int gnd_ctr = x + ctr;
     int gnd_y = y+ctr-20;
-    draw_rect(gnd_ctr-width/2, gnd_y, gnd_ctr+width/2, gnd_y+2*width, WHITE);//stem
-    draw_rect(gnd_ctr-4*width, gnd_y+2*width, gnd_ctr+4*width, gnd_y+3*width, WHITE);//1st layer
-    draw_rect(gnd_ctr-2*width, gnd_y+4*width, gnd_ctr+2*width, gnd_y+5*width, WHITE);//2nd
-    draw_rect(gnd_ctr-width, gnd_y+6*width, gnd_ctr+width, gnd_y+7*width, WHITE);//3rd
+    draw_rect(gnd_ctr-width/2, gnd_y, gnd_ctr+width/2, gnd_y+width/2, WHITE);//stem
+    draw_rect(gnd_ctr-4*width, gnd_y+width, gnd_ctr+4*width, gnd_y+3/2*width, WHITE);//1st layer
+    draw_rect(gnd_ctr-2*width, gnd_y+2*width, gnd_ctr+2*width, gnd_y+5/2*width, WHITE);//2nd
+    draw_rect(gnd_ctr-width, gnd_y+3*width, gnd_ctr+width, gnd_y+7/2*width, WHITE);//3rd
 
     //wires
+    res_y-=5;
+    int w = width/4;
+    draw_rect(x-w, y-ctr+20, x+w, y-radius, WHITE);//source up
+    draw_rect(x, y-ctr+20-w, x+4, y-ctr+20+w, WHITE);//source top right
+    draw_rect(x+34, y-ctr+20-w, x+64, y-ctr+20+w, WHITE);//right of first switch
+    draw_rect(x+94, y-ctr+20-w, res_x, y-ctr+20+w, WHITE);//right of second switch
+    draw_rect(res_x-w, y-ctr+20, res_x+w, res_y+3, WHITE);//down to resistor
+    draw_rect(x+ctr-w, y-ctr+20, x+ctr+w, y-5, WHITE);//down to capacitor
+    draw_rect(x+ctr-w, y+5, x+ctr+w, gnd_y, WHITE);//down from capacitor
+    draw_rect(res_x-w, res_y+5*diag_y, res_x+w, gnd_y, WHITE);//down from resistor
+    draw_rect(x, gnd_y-w, res_x, gnd_y+w, WHITE);//across the bottom
+    draw_rect(x-w, y+radius, x+w, gnd_y, WHITE);//up to source
 
-    //text add-ons
-    //V stuff
-    // write_string(x, y+ctr+10, 7, 'voltage');
 }
 
 void clear_screen(){
@@ -282,15 +284,15 @@ void clear_screen(){
 void draw_graph(int x, int y, int size, float values[size], short int colour){
     //bars of the graph
     draw_line(x, y + GRAPH_LEN, x, y - GRAPH_LEN, colour);//up-down
-    draw_line(x, y, x + GRAPH_LEN, y, colour);//horizontal
+    draw_line(x, y, x + 2*GRAPH_LEN, y, colour);//horizontal
 
     //arrows of the graph
     //top arrow
     draw_line(x, y - GRAPH_LEN, x-ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, colour);
     draw_line(x, y - GRAPH_LEN, x+ARROW_LEN, y-GRAPH_LEN+ARROW_LEN, colour);
     //right arrow
-    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y-ARROW_LEN, colour);
-    draw_line(x + GRAPH_LEN, y, x+GRAPH_LEN-ARROW_LEN, y+ARROW_LEN, colour);
+    draw_line(x + 2*GRAPH_LEN, y, x+2*GRAPH_LEN-ARROW_LEN, y-ARROW_LEN, colour);
+    draw_line(x + 2*GRAPH_LEN, y, x+2*GRAPH_LEN-ARROW_LEN, y+ARROW_LEN, colour);
     //bottom arrow
     draw_line(x, y + GRAPH_LEN, x-ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, colour);
     draw_line(x, y + GRAPH_LEN, x+ARROW_LEN, y+GRAPH_LEN-ARROW_LEN, colour);
@@ -305,8 +307,8 @@ void draw_graph(int x, int y, int size, float values[size], short int colour){
 
     //graph the values
     for(int i = 0; i < size-2; i++){
-        draw_line((int)(x+i*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i]/max)),
-                (int)(x+(i+1)*(GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i+1]/max)), RED);
+        draw_line((int)(x+i*(2*GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i]/max)),
+                (int)(x+(i+1)*(2*GRAPH_LEN-ARROW_LEN)/size), (int)(y-(GRAPH_LEN-ARROW_LEN)*(values[i+1]/max)), RED);
     }
 }
 
@@ -347,8 +349,8 @@ void draw_switches(int len, int x0, int y0, int x1, int y1, bool sw1, bool sw2, 
     }
 
     //circle bois 1
-    int radius = 8;
-    int width = 5;
+    int radius = 7;
+    int width = 3;
     draw_circle(x0, y0, radius, colour);//left
     draw_circle(x0, y0, radius-width, BLACK);
     draw_circle(x0+len, y0, radius, colour);//right
@@ -466,99 +468,6 @@ void draw_square(int x, int y, short int color){
     }
 }
 
-void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
-{
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
-
-    if (data == 0x1A && (*sw1_ready)){
-        *sw1 = !(*sw1);
-        *sw1_ready = false;
-    }
-
-    else if (data == 0xF01A && !(*sw1_ready)){
-        *sw1_ready = true;
-    }
-
-    if (data == 0x22 && (*sw2_ready)){
-        *sw2 = !(*sw2);
-        *sw2_ready = false;
-    }
-
-    else if (data == 0xF022 && !(*sw2_ready)){
-        *sw2_ready = true;
-    }
-}
-
-void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data){
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
-
-    if (data == 0x0D && (*tab_ready)){
-        (*select)++;
-        if ((*select)>4) (*select) = 0;
-        *tab_ready = false;
-        memcpy(temp_circuit_data, circuit_data, 6);
-    }
-
-    else if (data == 0xF00D && !(*tab_ready)){
-        *tab_ready = true;
-    }
-
-}
-
-void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data){
-    volatile int * JTAG_UART_ptr = (int *) 0xFF201000;
-
-    int data;
-    data = *(JTAG_UART_ptr);
-
-    if (type_ready){
-        if (data == 0x45 && (*digit) != 0) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select];
-        else if (data == 0x16) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 1;
-        else if (data == 0x1E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 2;
-        else if (data == 0x26) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 3;
-        else if (data == 0x25) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 4;
-        else if (data == 0x2E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 5;
-        else if (data == 0x36) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 6;
-        else if (data == 0x3D) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 7;
-        else if (data == 0x3E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 8;
-        else if (data == 0x46) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 9;
-
-        else if (data == 0x66 && (*digit) != 0){
-            temp_circuit_data[*select] = round(temp_circuit_data[*select]/pow(10, (*digit)));
-            *digit--;
-        }
-
-        else if (data == 0x5A){
-            memcpy(circuit_data, temp_circuit_data, 6);
-            *digit=0;
-        }
-
-        type_ready = false;
-    } else if (!type_ready){
-        if (data == 0xF045 ||
-            data == 0xF016 ||
-            data == 0xF01E ||
-            data == 0xF026 ||
-            data == 0xF025 ||
-            data == 0xF02E ||
-            data == 0xF036 ||
-            data == 0xF03D ||
-            data == 0xF03E ||
-            data == 0xF046 ||
-            data == 0xF066 ||
-            data == 0xF05A){
-        	*type_ready = true;
-            *digit ++;
-        }
-    }
-}
-
 void compute(int size,
             float *Vs,
             float *Ic,
@@ -607,3 +516,108 @@ void compute(int size,
         Ic[size-1] = - Vc[size-1] / res;
     }
 }
+
+void set_switches(bool* sw1, bool* sw2)
+{
+    volatile int* SW_ptr = (int*) 0xFF200040;
+    *(sw1) = *(SW_ptr) & 0b0000000001;
+    *(sw2) = *(SW_ptr) & 0b0000000010;
+    return;
+}
+// void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
+// {
+//     int data = get_jtag();
+//
+//     if (data == 0x1A && (*sw1_ready)){
+//         *sw1 = !(*sw1);
+//         *sw1_ready = false;
+//     }
+//
+//     else if (data == 0xF01A && !(*sw1_ready)){
+//          *sw1_ready = true;
+//     }
+//
+//     if (data == 0x22 && (*sw2_ready)){
+//         *sw2 = !(*sw2);
+//         *sw2_ready = false;
+//     }
+//
+//     else if (data == 0xF022 && !(*sw2_ready)){
+//         *sw2_ready = true;
+//     }
+// }
+
+// void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data)
+// {
+//     int data = get_jtag();
+//
+//     if (type_ready){
+//         if (data == 0x45 && (*digit) != 0) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select];
+//         else if (data == 0x16) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 1;
+//         else if (data == 0x1E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 2;
+//         else if (data == 0x26) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 3;
+//         else if (data == 0x25) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 4;
+//         else if (data == 0x2E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 5;
+//         else if (data == 0x36) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 6;
+//         else if (data == 0x3D) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 7;
+//         else if (data == 0x3E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 8;
+//         else if (data == 0x46) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 9;
+//
+//         else if (data == 0x66 && (*digit) != 0){
+//             temp_circuit_data[*select] = round(temp_circuit_data[*select]/pow(10, (*digit)));
+//             *digit--;
+//         }
+//
+//         else if (data == 0x5A){
+//             memcpy(circuit_data, temp_circuit_data, 6);
+//             *digit=0;
+//         }
+//
+//         type_ready = false;
+//     }else if (!type_ready){
+//          if (data == 0xF045 ||
+//              data == 0xF016 ||
+//              data == 0xF01E ||
+//              data == 0xF026 ||
+//              data == 0xF025 ||
+//              data == 0xF02E ||
+//              data == 0xF036 ||
+//              data == 0xF03D ||
+//              data == 0xF03E ||
+//              data == 0xF046 ||
+//              data == 0xF066 ||
+//              data == 0xF05A){
+//          	*type_ready = true;
+//              *digit ++;
+//          }
+//     }
+// }
+
+// void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data)
+// {
+//     int data = get_jtag();
+//
+//     if (data == 0x0D && (*tab_ready)){
+//         (*select)++;
+//         if ((*select)>4) (*select) = 0;
+//         // *tab_ready = false;
+//         memcpy(temp_circuit_data, circuit_data, 6);
+//     }
+//
+//     else if (data == 0xF00D && !(*tab_ready)){
+//          *tab_ready = true;
+//     }
+//
+// }
+
+// int get_jtag( void ){
+//     //read from PS/2 address
+//     volatile int* PS2_ptr = (int*) 0xFF200100;
+//     //collect its data
+//     int PS2_data = *(PS2_ptr);
+//     //if RVALID is 1
+//     //send back the make code of the PS/2 data
+//     if (PS2_data & 0x00008000) return (PS2_data & 0xFF);
+//     //otherwise, send NULL
+//     else return ('\0');
+// }
