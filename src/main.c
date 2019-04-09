@@ -35,6 +35,7 @@ void compute(	int size,
              	float *Ic,
             	float *Vc,
              	float *v_stored,
+                float *v_stored_const,
              	float amp,
                 float freq,
                 float phase,
@@ -104,6 +105,7 @@ int main(void){
     }
 
     float v_stored = 0.0;
+    float v_stored_const = 0.0;
     float dc_voltage = 12;
     //time data
     int tc = 0;
@@ -152,6 +154,7 @@ int main(void){
                     Ic,
                     Vc,
                     &v_stored,
+                    &v_stored_const;
                     circuit_data[0],
                     circuit_data[1],
                     circuit_data[2],
@@ -455,6 +458,7 @@ void compute(int size,
             float *Ic,
             float *Vc,
             float *v_stored,
+            float *v_stored_const,
             float amp,
             float freq,
             float phase,
@@ -499,8 +503,10 @@ void compute(int size,
         }
 
         else if (!sw1 && sw2){
+            *v_stored_const = *v_stored;
             Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
+            *v_stored = 0.0;
         }
 
 
@@ -524,8 +530,10 @@ void compute(int size,
         }
 
         else if (!sw1 && sw2){
-            Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
+            *v_stored_const = *v_stored;
+            Vc[size-1] = *(v_stored_const) *  exp( -(t-t_not) / (Rload * cap) );
             Ic[size-1] = - Vc[size-1] / Rload;
+            *v_stored = 0.0;
         }
     }
 }
