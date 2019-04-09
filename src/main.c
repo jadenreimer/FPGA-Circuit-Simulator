@@ -30,19 +30,24 @@ void draw_graph(int x, int y, int size, float values[size], short int colour);
 void plot_pixel(int x, int y, short int line_color);
 
 void compute(	int size,
+                float dc_voltage,
              	float *Vs,
              	float *Ic,
             	float *Vc,
              	float *v_stored,
+                float *v_stored_const,
+                bool *change,
              	float amp,
                 float freq,
                 float phase,
+                float Rin,
                 float cap,
-                float res,
+                float Rload,
                 float t,
                 float t_not,
                 bool sw1,
-             	bool sw2);
+             	bool sw2,
+                bool ac);
 
 void swap (int* x, int* y);
 void wait_for_vsync();
@@ -55,16 +60,12 @@ void draw_circuit(int x, int y, short int colour, bool sw1, bool sw2);
 void write_char(int x, int y, char c);
 void write_string(int x, int y, int size, char string[size]);
 void clear_chars();
-void set_switches( bool *sw1, bool *sw2 );
-
-// void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready );
-// void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data);
-// void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data);
-// int get_jtag( void );
+void set_switches( bool *sw1, bool *sw2, bool *ac );
 
 int main(void){
     bool sw1 = false;
     bool sw2 = false;
+    bool ac = false;
 
     // declare other variables
     // short int draw_colour = BLUE;
@@ -89,9 +90,9 @@ int main(void){
     int size = 70;
 
     //Graph data
-    float Vs[size];// = {0};
-    float Ic[size];// = {0};
-    float Vc[size];// = {0};
+    float Vs[size];
+    float Ic[size];
+    float Vc[size];
 
     for(int i = 0; i<size; i++){
         Vs[i] = 0;
@@ -100,7 +101,9 @@ int main(void){
     }
 
     float v_stored = 0.0;
-
+    float v_stored_const = 0.0;
+    bool change = false;
+    float dc_voltage = 12;
     //time data
     int tc = 0;
     double t = 0.0;
@@ -108,7 +111,8 @@ int main(void){
 
     //circuit data
     float capacitance = 1 * pow(10, -6);
-    float resistance = 1000;
+    float Rload = 1000;
+    float Rin = 500;
 
     //signal data
     float amp = 1;
@@ -119,7 +123,7 @@ int main(void){
     // bool tab_ready = true;
     // bool type_ready = true;
 
-    float circuit_data[5] = {amp, freq, phase, capacitance, resistance};
+    float circuit_data[5] = {amp, freq, phase, Rin, capacitance, Rload};
     // float temp_circuit_data[5] = {0,0,0,0,0};
     // int digit = 0;
 
@@ -129,8 +133,8 @@ int main(void){
         //  clear screen
         clear_screen();
         // clear_chars();
-        set_switches(&sw1, &sw2);
-        draw_circuit(30, 70, WHITE, sw1, sw2);
+        set_switches(&sw1, &sw2, &ac);
+        draw_circuit(40, 100, WHITE, sw1, sw2);
 
         //Voltage text
         // char out[] = "Voltage\0";
@@ -156,19 +160,24 @@ int main(void){
         if(tc == 1){
 
             compute(size,
+                    dc_voltage,
                     Vs,
                     Ic,
                     Vc,
                     &v_stored,
+                    &v_stored_const,
+                    &change,
                     circuit_data[0],
                     circuit_data[1],
                     circuit_data[2],
                     circuit_data[3],
                     circuit_data[4],
+                    circuit_data[5],
                     t,
                     t_not,
                     sw1,
-                    sw2);
+                    sw2,
+                    ac);
 
             t = t + 0.1;
 
@@ -469,19 +478,24 @@ void draw_square(int x, int y, short int color){
 }
 
 void compute(int size,
+            float dc_voltage,
             float *Vs,
             float *Ic,
             float *Vc,
             float *v_stored,
+            float *v_stored_const,
+            bool *change,
             float amp,
             float freq,
             float phase,
+            float Rin,
             float cap,
-            float res,
+            float Rload,
             float t,
             float t_not,
             bool sw1,
-            bool sw2){
+            bool sw2,
+            bool ac){
 
     for (int i = 0; i<size; i++){
         Ic[i] = Ic[i+1];
@@ -491,133 +505,82 @@ void compute(int size,
 
     float arg = (freq * (t - t_not)) - phase;
 
-    Vs[size-1] = amp * sin(arg);
+    if (ac) Vs[size-1] = amp * sin(arg);
+    else Vs[size-1] = dc_voltage;
 
-    if (!sw1 && !sw2){
-        Ic[size-1] = 0;
-        Vc[size-1] = Vc[size-1];//Vs[size-1];
-        *v_stored = Vc[size-1];
-    }
+    if (ac)
+    {
+        if (!sw1 && !sw2){
+            Ic[size-1] = 0;
+            Vc[size-1] = *v_stored;
+            *change = false;
+        }
 
-    else if (sw1 && !sw2){
-        Ic[size-1] = cap * amp * freq * cos(arg);
-        Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (res * cap) ) );
-        *v_stored = Vc[size-1];
-    }
+        else if (sw1 && !sw2){
+            Ic[size-1] = cap * amp * freq * cos(arg);
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rload * cap) ) );
+            *v_stored = Vc[size-1];
+            *change = false;
+        }
 
-    else if (sw1 && sw2){
-        Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (res * cap) ) ) / res) + (amp * cap * freq * (1 - exp( -(t-t_not) / (res * cap) ) ) * cos(arg));
-        Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (res * cap) ) );
-        *v_stored = Vc[size-1];
-    }
+        else if (sw1 && sw2){
+            float Rtot = (Rin * Rload) / (Rin + Rload);
+            Ic[size-1] = ((amp * sin(arg) * exp( -(t-t_not) / (Rtot * cap) ) ) / Rtot) + (amp * cap * freq * (1 - exp( -(t-t_not) / (Rtot * cap) ) ) * cos(arg));
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap) ) );
+            *v_stored = Vc[size-1];
+            *change = false;
+        }
 
-    else if (!sw1 && sw2){
-        Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (res * cap) );
-        Ic[size-1] = - Vc[size-1] / res;
+        else if (!sw1 && sw2){
+            if (!(*change)){
+                *v_stored_const = *v_stored;
+                *change = true;
+            }
+            Vc[size-1] = *(v_stored) *  exp( -(t-t_not) / (Rload * cap) );
+            Ic[size-1] = - Vc[size-1] / Rload;
+            *v_stored = Vc[size-1];
+        }
+
+
+    } else {
+        if (!sw1 && !sw2){
+            Ic[size-1] = 0;
+            Vc[size-1] = *v_stored;
+            *change = false;
+        }
+
+        else if (sw1 && !sw2){
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rin * cap)));
+            Ic[size-1] = ( Vs[size-1] * ( exp( -(t-t_not) / (Rin * cap) ) ) ) / Rin;
+            *v_stored = Vc[size-1];
+            *change = false;
+        }
+
+        else if (sw1 && sw2){
+            float Rtot = (Rin * Rload) / (Rin + Rload);
+            Vc[size-1] = Vs[size-1] * (1 - exp( -(t-t_not) / (Rtot * cap)));
+            Ic[size-1] = ( Vs[size-1] * ( exp( -(t-t_not) / (Rtot * cap) ) ) ) / Rtot;
+            *v_stored = Vc[size-1];
+            *change = false;
+        }
+
+        else if (!sw1 && sw2){
+            if (!(*change)){
+                *v_stored_const = *v_stored;
+                *change = true;
+            }
+            Vc[size-1] = *(v_stored_const) *  exp( -(t-t_not) / (Rload * cap) );
+            Ic[size-1] = - Vc[size-1] / Rload;
+            *v_stored = Vc[size-1];
+        }
     }
 }
 
-void set_switches(bool* sw1, bool* sw2)
+void set_switches(bool* sw1, bool* sw2, bool *ac)
 {
     volatile int* SW_ptr = (int*) 0xFF200040;
     *(sw1) = *(SW_ptr) & 0b0000000001;
     *(sw2) = *(SW_ptr) & 0b0000000010;
+    *(ac) = *(SW_ptr) & 0b1000000000;
     return;
 }
-// void set_switches( bool *sw1, bool *sw2, bool *sw1_ready, bool *sw2_ready )
-// {
-//     int data = get_jtag();
-//
-//     if (data == 0x1A && (*sw1_ready)){
-//         *sw1 = !(*sw1);
-//         *sw1_ready = false;
-//     }
-//
-//     else if (data == 0xF01A && !(*sw1_ready)){
-//          *sw1_ready = true;
-//     }
-//
-//     if (data == 0x22 && (*sw2_ready)){
-//         *sw2 = !(*sw2);
-//         *sw2_ready = false;
-//     }
-//
-//     else if (data == 0xF022 && !(*sw2_ready)){
-//         *sw2_ready = true;
-//     }
-// }
-
-// void change_data( int *select, int *digit, bool *type_ready, float *circuit_data, float *temp_circuit_data)
-// {
-//     int data = get_jtag();
-//
-//     if (type_ready){
-//         if (data == 0x45 && (*digit) != 0) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select];
-//         else if (data == 0x16) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 1;
-//         else if (data == 0x1E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 2;
-//         else if (data == 0x26) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 3;
-//         else if (data == 0x25) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 4;
-//         else if (data == 0x2E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 5;
-//         else if (data == 0x36) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 6;
-//         else if (data == 0x3D) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 7;
-//         else if (data == 0x3E) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 8;
-//         else if (data == 0x46) temp_circuit_data[*select] = pow(10, *digit) * temp_circuit_data[*select] + 9;
-//
-//         else if (data == 0x66 && (*digit) != 0){
-//             temp_circuit_data[*select] = round(temp_circuit_data[*select]/pow(10, (*digit)));
-//             *digit--;
-//         }
-//
-//         else if (data == 0x5A){
-//             memcpy(circuit_data, temp_circuit_data, 6);
-//             *digit=0;
-//         }
-//
-//         type_ready = false;
-//     }else if (!type_ready){
-//          if (data == 0xF045 ||
-//              data == 0xF016 ||
-//              data == 0xF01E ||
-//              data == 0xF026 ||
-//              data == 0xF025 ||
-//              data == 0xF02E ||
-//              data == 0xF036 ||
-//              data == 0xF03D ||
-//              data == 0xF03E ||
-//              data == 0xF046 ||
-//              data == 0xF066 ||
-//              data == 0xF05A){
-//          	*type_ready = true;
-//              *digit ++;
-//          }
-//     }
-// }
-
-// void tab_over( int *select, int *digit, bool *tab_ready, float *circuit_data, float *temp_circuit_data)
-// {
-//     int data = get_jtag();
-//
-//     if (data == 0x0D && (*tab_ready)){
-//         (*select)++;
-//         if ((*select)>4) (*select) = 0;
-//         // *tab_ready = false;
-//         memcpy(temp_circuit_data, circuit_data, 6);
-//     }
-//
-//     else if (data == 0xF00D && !(*tab_ready)){
-//          *tab_ready = true;
-//     }
-//
-// }
-
-// int get_jtag( void ){
-//     //read from PS/2 address
-//     volatile int* PS2_ptr = (int*) 0xFF200100;
-//     //collect its data
-//     int PS2_data = *(PS2_ptr);
-//     //if RVALID is 1
-//     //send back the make code of the PS/2 data
-//     if (PS2_data & 0x00008000) return (PS2_data & 0xFF);
-//     //otherwise, send NULL
-//     else return ('\0');
-// }
