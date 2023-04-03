@@ -1,4 +1,4 @@
-# 243-project
+# FPGA-Circuit-Simulator
 
 Path to develop program:
 1. Get program running with lines that will appear or disappear based on interrupts from the buttons
